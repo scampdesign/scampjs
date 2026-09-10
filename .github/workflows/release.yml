@@ -1,0 +1,55 @@
+name: Release
+
+# A tag names exactly one package: `scampjs@0.1.0`, `create-scampjs@0.1.0`,
+# `@scampjs/adapter-cloudflare@0.1.0`. The job checks the tag's version
+# against the workspace's package.json, builds, and publishes that one
+# workspace.
+#
+# Phase 0 publishes as a dry run only. Phase 2 (the first release that
+# runs) removes `--dry-run` below; the `id-token: write` permission is
+# already granted so npm trusted publishing (OIDC, with provenance) works
+# without a stored token once the package is configured for it on npm.
+on:
+  push:
+    tags:
+      - '*@*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Parse tag
+        id: tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          pkg="${tag%@*}"
+          version="${tag##*@}"
+          echo "package=$pkg" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - name: Check version matches package.json
+        run: |
+          actual=$(npm pkg get version -w "${{ steps.tag.outputs.package }}" | tr -d '"{}\n ' | sed 's/.*://')
+          if [ "$actual" != "${{ steps.tag.outputs.version }}" ]; then
+            echo "tag says ${{ steps.tag.outputs.version }} but package.json says $actual"
+            exit 1
+          fi
+
+      - run: npm run build -w "${{ steps.tag.outputs.package }}" --if-present
+      - run: npm test
+
+      - name: Publish (dry run until phase 2)
+        run: npm publish --dry-run --access public --provenance -w "${{ steps.tag.outputs.package }}"

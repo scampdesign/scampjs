@@ -1,0 +1,22 @@
+/* Design tokens. Scamp edits this file; the framework injects it into the
+   document shell of every route and of /_views/<Name>. */
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --color-bg: #0f0f12;
+  --color-fg: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-surface: #1c1c22;
+  --color-accent: #facc15;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 32px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+}

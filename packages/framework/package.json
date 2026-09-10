@@ -1,0 +1,57 @@
+{
+  "name": "scampjs",
+  "version": "0.0.1",
+  "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 0: types and the contract only; nothing runs yet.",
+  "license": "MIT",
+  "author": "Angie Hemans",
+  "homepage": "https://github.com/angiehemans/scampjs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angiehemans/scampjs.git",
+    "directory": "packages/framework"
+  },
+  "bugs": "https://github.com/angiehemans/scampjs/issues",
+  "keywords": [
+    "scamp",
+    "preact",
+    "vite",
+    "hono",
+    "framework",
+    "design-tool"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "default": "./dist/runtime/index.js"
+    },
+    "./templates": {
+      "types": "./dist/templates/index.d.ts",
+      "default": "./dist/templates/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CONTRACT.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scampjs": {
+    "contract": 0
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/prepack.mjs CONTRACT.md LICENSE"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
