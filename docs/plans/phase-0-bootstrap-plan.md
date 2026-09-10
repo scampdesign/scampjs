@@ -31,16 +31,16 @@ guessing.
 
 Checked on 2026-09-10 from this machine.
 
-| Check                                                       | Result                                                                                                                                                                      | Consequence                                                                                             |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `@scamp` npm scope                                          | **Taken.** An npm user named `scamp` exists, and a user's name is also their scope. `npm org ls scamp` reports that user as owner.                                          | `@scamp/framework` cannot be published. Decision 1 below.                                               |
-| Unscoped `scamp` on npm                                     | A 2021 RabbitMQ client by another author, one release, no `bin`.                                                                                                            | A CLI binary named `scamp` does not collide. Only the package name is unavailable.                      |
-| `scampjs`, `create-scampjs`, `create-scamp`, `@scampjs/*`   | All free.                                                                                                                                                                   | Any of these can be claimed.                                                                            |
-| GitHub `angiehemans/scampjs`, `angiehemans/scamp-framework` | Neither exists.                                                                                                                                                             | The repo is created in this phase.                                                                      |
-| npm login on this machine                                   | Not logged in, no token in `~/.npmrc`.                                                                                                                                      | Claiming names is a manual step for you.                                                                |
-| `_scamp` view metadata                                      | Does not exist in the app today. The generator emits `data-scamp-id`, `data-scamp-instance-id`, a `<Name>Props` type with string defaults, and the `className` passthrough. | Phase 0 defines it from scratch. Decision 4.                                                            |
-| App tooling                                                 | Node 24, TypeScript 5.x strict with `noUncheckedIndexedAccess`, Vitest, no ESLint or Prettier config.                                                                       | Mirror the TypeScript flags so both repos check the contract types identically. Decision 6 covers lint. |
-| Vite 7 engine floor                                         | `^20.19.0 \|\| >=22.12.0`                                                                                                                                                   | The published packages declare that floor even though Vite arrives in phase 2.                          |
+| Check                                                     | Result                                                                                                                                                                      | Consequence                                                                                             |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `@scamp` npm scope                                        | **Taken.** An npm user named `scamp` exists, and a user's name is also their scope. `npm org ls scamp` reports that user as owner.                                          | `@scamp/framework` cannot be published. Decision 1 below.                                               |
+| Unscoped `scamp` on npm                                   | A 2021 RabbitMQ client by another author, one release, no `bin`.                                                                                                            | A CLI binary named `scamp` does not collide. Only the package name is unavailable.                      |
+| `scampjs`, `create-scampjs`, `create-scamp`, `@scampjs/*` | All free.                                                                                                                                                                   | Any of these can be claimed.                                                                            |
+| GitHub `scampdesign/scampjs`                              | Existed, empty, created 2026-09-10; the history was pushed into it.                                                                                                         | The repo is created in this phase.                                                                      |
+| npm login on this machine                                 | Not logged in, no token in `~/.npmrc`.                                                                                                                                      | Claiming names is a manual step for you.                                                                |
+| `_scamp` view metadata                                    | Does not exist in the app today. The generator emits `data-scamp-id`, `data-scamp-instance-id`, a `<Name>Props` type with string defaults, and the `className` passthrough. | Phase 0 defines it from scratch. Decision 4.                                                            |
+| App tooling                                               | Node 24, TypeScript 5.x strict with `noUncheckedIndexedAccess`, Vitest, no ESLint or Prettier config.                                                                       | Mirror the TypeScript flags so both repos check the contract types identically. Decision 6 covers lint. |
+| Vite 7 engine floor                                       | `^20.19.0 \|\| >=22.12.0`                                                                                                                                                   | The published packages declare that floor even though Vite arrives in phase 2.                          |
 
 ## Decisions needed before work starts
 
@@ -408,7 +408,7 @@ Short, in the style of the app's. The rules that matter here:
 2. **Claim names.** Log in to npm; create the `@scampjs` org. If
    Decision 2 is yes, the placeholder publishes happen at step 10.
 3. **Create the repository.** `git init` here, first commit with
-   `LICENSE`, `README.md`, `.gitignore`; create `angiehemans/scampjs`
+   `LICENSE`, `README.md`, `.gitignore`; create `scampdesign/scampjs`
    on GitHub and push.
 4. **Scaffold the workspace.** Root `package.json`, `tsconfig.base.json`,
    both packages with their `package.json` and `exports` maps, an empty
@@ -453,7 +453,7 @@ a sign the contract is describing behaviour instead of shape.
 ## Done when
 
 - The `@scampjs` org exists and the names in Decision 1 are held.
-- `angiehemans/scampjs` is public, MIT, with CI green on `main`.
+- `scampdesign/scampjs` is public, MIT, with CI green on `main`.
 - `npm publish --dry-run --workspaces` succeeds for both packages.
 - `scampjs/runtime` exports the five types above with passing type
   tests, and `scampjs` exports `CONTRACT_VERSION` equal to the
@@ -472,7 +472,7 @@ Updated 2026-09-10.
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Decisions 1 through 8    | Done. All recommendations accepted.                                                                                                                 |
 | 2. Claim names              | **Needs you.** `npm login`, then create the `@scampjs` org at npmjs.com.                                                                            |
-| 3. Repository               | Done. `angiehemans/scampjs`, public, MIT, `main` pushed.                                                                                            |
+| 3. Repository               | Done. `scampdesign/scampjs`, public, MIT, `main` and tags pushed.                                                                                   |
 | 4. Workspace scaffold       | Done. `npm run check` passes: lint, format, typecheck, test, build, dry-run publish.                                                                |
 | 5. CI green on empty        | Done. `ci.yml` runs on push and PR; `release.yml` on `<package>@<version>` tags.                                                                    |
 | 6. Runtime types and tests  | Done. `scampjs/runtime` exports `Env`, `Params`, `LoadContext`, `RouteProps`, `RenderMode`, `ViewMeta`; `scampjs` exports `CONTRACT_VERSION`.       |
@@ -492,7 +492,7 @@ npm publish -w create-scampjs --access public
 
 After the first publish, enable trusted publishing for both packages on
 npmjs.com (package settings, "Trusted publisher", GitHub Actions,
-repository `angiehemans/scampjs`, workflow `release.yml`) and phase 2
+repository `scampdesign/scampjs`, workflow `release.yml`) and phase 2
 can drop `--dry-run` from the release workflow.
 
 Two things the build surfaced that the contract now states:

@@ -4,13 +4,13 @@
   "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 0: types and the contract only; nothing runs yet.",
   "license": "MIT",
   "author": "Angie Hemans",
-  "homepage": "https://github.com/angiehemans/scampjs#readme",
+  "homepage": "https://github.com/scampdesign/scampjs#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angiehemans/scampjs.git",
+    "url": "git+https://github.com/scampdesign/scampjs.git",
     "directory": "packages/framework"
   },
-  "bugs": "https://github.com/angiehemans/scampjs/issues",
+  "bugs": "https://github.com/scampdesign/scampjs/issues",
   "keywords": [
     "scamp",
     "preact",

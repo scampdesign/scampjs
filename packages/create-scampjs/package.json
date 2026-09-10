@@ -4,13 +4,13 @@
   "description": "Scaffold a Scamp framework project with `npm create scampjs`. Not functional yet: this release reserves the name and points at the repository.",
   "license": "MIT",
   "author": "Angie Hemans",
-  "homepage": "https://github.com/angiehemans/scampjs#readme",
+  "homepage": "https://github.com/scampdesign/scampjs#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angiehemans/scampjs.git",
+    "url": "git+https://github.com/scampdesign/scampjs.git",
     "directory": "packages/create-scampjs"
   },
-  "bugs": "https://github.com/angiehemans/scampjs/issues",
+  "bugs": "https://github.com/scampdesign/scampjs/issues",
   "keywords": [
     "scamp",
     "create",
