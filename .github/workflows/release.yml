@@ -57,4 +57,4 @@ jobs:
         run: |
           dir=$(npm query ".workspace[name='${{ steps.tag.outputs.package }}']" | node -e "const [w]=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!w){process.exit(1)} console.log(w.path)")
           cd "$dir"
-          npm publish --access public --provenance
+          npm publish --access public --provenance --loglevel verbose
