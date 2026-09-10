@@ -381,10 +381,9 @@ three consumers.
 - **`ci.yml`** on push and pull request: `npm ci`, lint, typecheck,
   test, build, then `npm publish --dry-run --workspaces`. Node 24,
   Ubuntu.
-- **`release.yml`** on tags matching `*@*`: build, then a dry-run
-  publish of the named workspace. Phase 2 flips it to a real publish.
-  Use npm trusted publishing (OIDC from GitHub Actions, with
-  provenance) rather than a long-lived token, so no secret is stored.
+- **`release.yml`** on tags matching `*@*`: build, then publish the
+  named workspace through npm trusted publishing (OIDC from GitHub
+  Actions, with provenance), so no secret is stored.
 
 ## `CLAUDE.md` for this repo
 

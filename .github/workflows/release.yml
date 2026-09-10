@@ -5,10 +5,10 @@ name: Release
 # against the workspace's package.json, builds, and publishes that one
 # workspace.
 #
-# Phase 0 publishes as a dry run only. Phase 2 (the first release that
-# runs) removes `--dry-run` below; the `id-token: write` permission is
-# already granted so npm trusted publishing (OIDC, with provenance) works
-# without a stored token once the package is configured for it on npm.
+# Publishes through npm trusted publishing: no stored token. The
+# `id-token: write` permission lets the job mint an OIDC token, and each
+# package's settings on npmjs.com name this repository and workflow file
+# as its trusted publisher. `--provenance` attaches the build attestation.
 on:
   push:
     tags:
@@ -51,5 +51,5 @@ jobs:
       - run: npm run build -w "${{ steps.tag.outputs.package }}" --if-present
       - run: npm test
 
-      - name: Publish (dry run until phase 2)
-        run: npm publish --dry-run --access public --provenance -w "${{ steps.tag.outputs.package }}"
+      - name: Publish
+        run: npm publish --access public --provenance -w "${{ steps.tag.outputs.package }}"
