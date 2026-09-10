@@ -51,5 +51,10 @@ jobs:
       - run: npm run build -w "${{ steps.tag.outputs.package }}" --if-present
       - run: npm test
 
+      # Publish from inside the package directory rather than with -w, which
+      # is the form npm's trusted-publishing docs describe.
       - name: Publish
-        run: npm publish --access public --provenance -w "${{ steps.tag.outputs.package }}"
+        run: |
+          dir=$(npm query ".workspace[name='${{ steps.tag.outputs.package }}']" | node -e "const [w]=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!w){process.exit(1)} console.log(w.path)")
+          cd "$dir"
+          npm publish --access public --provenance
