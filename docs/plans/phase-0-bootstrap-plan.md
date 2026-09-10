@@ -1,7 +1,8 @@
 # Phase 0 — bootstrap the framework repo — Plan
 
-Status: **proposed** — for review. Nothing built. This folder is empty
-and is not yet a git repository.
+Status: **in progress.** All eight decisions were accepted as
+recommended on 2026-09-10 and the scaffold is built; see "Progress" at
+the end for what is done and what still needs you.
 
 Source: "Phase 0" of `scamp/docs/plans/scamp-framework-tech-plan.md`,
 with the reasoning in `scamp/docs/plans/scamp-framework-plan.md` and
@@ -462,3 +463,45 @@ a sign the contract is describing behaviour instead of shape.
 - `fixtures/contract-0/views/Lobby/Lobby.tsx` exists in the exact form
   phase 1's generator will be tested against.
 - The app repo's two plans and website copy use the chosen names.
+
+## Progress
+
+Updated 2026-09-10.
+
+| Task                        | State                                                                                                                                               |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Decisions 1 through 8    | Done. All recommendations accepted.                                                                                                                 |
+| 2. Claim names              | **Needs you.** `npm login`, then create the `@scampjs` org at npmjs.com.                                                                            |
+| 3. Repository               | Done. `angiehemans/scampjs`, public, MIT, `main` pushed.                                                                                            |
+| 4. Workspace scaffold       | Done. `npm run check` passes: lint, format, typecheck, test, build, dry-run publish.                                                                |
+| 5. CI green on empty        | Done. `ci.yml` runs on push and PR; `release.yml` on `<package>@<version>` tags.                                                                    |
+| 6. Runtime types and tests  | Done. `scampjs/runtime` exports `Env`, `Params`, `LoadContext`, `RouteProps`, `RenderMode`, `ViewMeta`; `scampjs` exports `CONTRACT_VERSION`.       |
+| 7. Fixtures                 | Done. `packages/framework/fixtures/contract-0/`, with all five binding kinds in `Lobby`.                                                            |
+| 8. `CONTRACT.md`            | Done. Four sections plus the fixture index; 15 fixture-backed quotes checked by the drift test.                                                     |
+| 9. README, CLAUDE.md, notes | Done.                                                                                                                                               |
+| 10. Tag and publish         | Tags `scampjs@0.0.1` and `create-scampjs@0.0.1` pushed; the workflow dry-runs. **Publishing needs you:** after `npm login`, run the commands below. |
+| 11. App repo follow-up      | Edited, not committed: the two plans and the website copy use the new names and point here. Review the diff in the app repo and commit.             |
+
+Publishing, once logged in, from the repository root:
+
+```bash
+npm run build
+npm publish -w scampjs --access public
+npm publish -w create-scampjs --access public
+```
+
+After the first publish, enable trusted publishing for both packages on
+npmjs.com (package settings, "Trusted publisher", GitHub Actions,
+repository `angiehemans/scampjs`, workflow `release.yml`) and phase 2
+can drop `--dry-run` from the release workflow.
+
+Two things the build surfaced that the contract now states:
+
+- **Slot props type as `React.ReactNode`.** The app's generator emits
+  that today. Under Preact it resolves through the `react` to
+  `preact/compat` mapping in the project's `tsconfig.json`, so the
+  contract specifies that mapping in section 1.8 and the fixture
+  carries it. Phase 2's template must include it.
+- **The `_scamp` export lists events in props-type order**, and the
+  drift test checks that the list equals the function-typed members of
+  the props type. Phase 1's generator gets the same rule for free.
