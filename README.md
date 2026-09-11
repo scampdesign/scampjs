@@ -6,7 +6,7 @@ Views are plain JSX functions whose defaults are their sample data.
 Routes are yours and are never generated. Rendering mode is chosen per
 route, and islands come from the data instead of from you.
 
-It is the framework the [Scamp](https://github.com/angiehemans/scamp)
+It is the framework the [Scamp](https://www.scamp.club)
 design tool writes projects for, and it works without Scamp installed.
 The files are the product: views and components drop into a Next,
 Remix, or Vite project unchanged.
@@ -23,8 +23,8 @@ phase is and the plans in the Scamp app repository for the whole road.
 
 | Package                                     | What                                                                                      | Version |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework. `scampjs/runtime` types now; `scamp dev`, `build`, `preview`, `add` later. | 0.0.1   |
-| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                              | 0.0.1   |
+| [`scampjs`](packages/framework)             | The framework. `scampjs/runtime` types now; `scamp dev`, `build`, `preview`, `add` later. | 0.0.3   |
+| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                              | 0.0.2   |
 | `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                          | —       |
 
 ## The contract

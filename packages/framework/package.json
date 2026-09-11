@@ -1,6 +1,6 @@
 {
   "name": "scampjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 0: types and the contract only; nothing runs yet.",
   "license": "MIT",
   "author": "Angie Hemans",
@@ -39,7 +39,8 @@
   "files": [
     "dist",
     "CONTRACT.md",
-    "LICENSE"
+    "LICENSE",
+    "fixtures"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
