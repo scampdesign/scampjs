@@ -42,7 +42,7 @@ in the contract matches it.
 ```bash
 nvm use            # Node 24
 npm ci
-npm run check      # lint, format, typecheck, test, build, dry-run publish
+npm run check      # lint, format, typecheck, test, build, pack dry-run
 ```
 
 Releases are tagged `<package>@<version>` and published by CI.

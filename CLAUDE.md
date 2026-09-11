@@ -46,7 +46,7 @@ docs/plans/                one plan per phase; docs/notes/ for context that outg
 ## Commands
 
 `npm run check` runs everything CI runs. Individually: `lint`,
-`format:check`, `typecheck`, `test`, `build`, `publish:dry`.
+`format:check`, `typecheck`, `test`, `build`, `pack:dry`.
 
 ## Comments and notes
 

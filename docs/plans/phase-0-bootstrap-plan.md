@@ -173,8 +173,8 @@ scampjs/
   .nvmrc                     ← 24
   .editorconfig  .gitignore  .npmrc (provenance / access defaults)
   .github/workflows/
-    ci.yml                   ← push + PR: lint, typecheck, test, build, dry-run publish
-    release.yml              ← tags: build, then dry-run publish (real publish from phase 2)
+    ci.yml                   ← push + PR: lint, typecheck, test, build, pack dry-run
+    release.yml              ← tags: build, then pack dry-run (real publish from phase 2)
   docs/
     plans/                   ← this file
     notes/                   ← same convention as the app repo
@@ -467,32 +467,19 @@ a sign the contract is describing behaviour instead of shape.
 
 Updated 2026-09-10.
 
-| Task                        | State                                                                                                                                               |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Decisions 1 through 8    | Done. All recommendations accepted.                                                                                                                 |
-| 2. Claim names              | **Needs you.** `npm login`, then create the `@scampjs` org at npmjs.com.                                                                            |
-| 3. Repository               | Done. `scampdesign/scampjs`, public, MIT, `main` and tags pushed.                                                                                   |
-| 4. Workspace scaffold       | Done. `npm run check` passes: lint, format, typecheck, test, build, dry-run publish.                                                                |
-| 5. CI green on empty        | Done. `ci.yml` runs on push and PR; `release.yml` on `<package>@<version>` tags.                                                                    |
-| 6. Runtime types and tests  | Done. `scampjs/runtime` exports `Env`, `Params`, `LoadContext`, `RouteProps`, `RenderMode`, `ViewMeta`; `scampjs` exports `CONTRACT_VERSION`.       |
-| 7. Fixtures                 | Done. `packages/framework/fixtures/contract-0/`, with all five binding kinds in `Lobby`.                                                            |
-| 8. `CONTRACT.md`            | Done. Four sections plus the fixture index; 15 fixture-backed quotes checked by the drift test.                                                     |
-| 9. README, CLAUDE.md, notes | Done.                                                                                                                                               |
-| 10. Tag and publish         | Tags `scampjs@0.0.1` and `create-scampjs@0.0.1` pushed; the workflow dry-runs. **Publishing needs you:** after `npm login`, run the commands below. |
-| 11. App repo follow-up      | Edited, not committed: the two plans and the website copy use the new names and point here. Review the diff in the app repo and commit.             |
-
-Publishing, once logged in, from the repository root:
-
-```bash
-npm run build
-npm publish -w scampjs --access public
-npm publish -w create-scampjs --access public
-```
-
-After the first publish, enable trusted publishing for both packages on
-npmjs.com (package settings, "Trusted publisher", GitHub Actions,
-repository `scampdesign/scampjs`, workflow `release.yml`) and phase 2
-can drop `--dry-run` from the release workflow.
+| Task                        | State                                                                                                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Decisions 1 through 8    | Done. All recommendations accepted.                                                                                                                                                                                   |
+| 2. Claim names              | **Needs you.** `npm login`, then create the `@scampjs` org at npmjs.com.                                                                                                                                              |
+| 3. Repository               | Done. `scampdesign/scampjs`, public, MIT, `main` and tags pushed.                                                                                                                                                     |
+| 4. Workspace scaffold       | Done. `npm run check` passes: lint, format, typecheck, test, build, pack dry-run.                                                                                                                                     |
+| 5. CI green on empty        | Done. `ci.yml` runs on push and PR; `release.yml` on `<package>@<version>` tags.                                                                                                                                      |
+| 6. Runtime types and tests  | Done. `scampjs/runtime` exports `Env`, `Params`, `LoadContext`, `RouteProps`, `RenderMode`, `ViewMeta`; `scampjs` exports `CONTRACT_VERSION`.                                                                         |
+| 7. Fixtures                 | Done. `packages/framework/fixtures/contract-0/`, with all five binding kinds in `Lobby`.                                                                                                                              |
+| 8. `CONTRACT.md`            | Done. Four sections plus the fixture index; 15 fixture-backed quotes checked by the drift test.                                                                                                                       |
+| 9. README, CLAUDE.md, notes | Done.                                                                                                                                                                                                                 |
+| 10. Tag and publish         | Done. `scampjs@0.0.2` and `create-scampjs@0.0.2` published from `release.yml` through npm trusted publishing, with provenance. See `docs/notes/npm-trusted-publishing.md` for the setup and the `permissions` gotcha. |
+| 11. App repo follow-up      | Edited, not committed: the two plans and the website copy use the new names and point here. Review the diff in the app repo and commit.                                                                               |
 
 Two things the build surfaced that the contract now states:
 
