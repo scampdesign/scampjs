@@ -23,7 +23,7 @@ phase is and the plans in the Scamp app repository for the whole road.
 
 | Package                                     | What                                                                                      | Version |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework. `scampjs/runtime` types now; `scamp dev`, `build`, `preview`, `add` later. | 0.0.4   |
+| [`scampjs`](packages/framework)             | The framework. `scampjs/runtime` types now; `scamp dev`, `build`, `preview`, `add` later. | 0.0.5   |
 | [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                              | 0.0.2   |
 | `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                          | —       |
 

@@ -1,14 +1,17 @@
 .root {
+  width: 100%;
   display: flex;
-  align-items: center;
   gap: var(--space-sm);
+  align-items: center;
   padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
   background: var(--color-surface);
+  border-radius: var(--radius-md);
+  position: relative;
 }
 
 .link_b2c1 {
-  flex: 1;
+  flex-grow: 1;
+  flex-basis: 0%;
   color: var(--color-fg);
   text-decoration: none;
   overflow: hidden;
