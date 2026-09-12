@@ -13,19 +13,20 @@ Remix, or Vite project unchanged.
 
 ## Status
 
-**Contract 0: nothing runs yet.** This repository holds the contract
-between the framework and the Scamp app, the runtime types, and a
-fixture project in the specified shape. `scamp dev` arrives with
-contract 1. See `docs/plans/phase-0-bootstrap-plan.md` for what this
-phase is and the plans in the Scamp app repository for the whole road.
+**Contract 1: `scamp dev` runs.** The dev server serves a project's
+routes with `load()`, renders every view at `/_views/<Name>`, prints
+the readiness line the Scamp app watches for, and the templates export
+scaffolds projects, views, and components. `scamp build`, `preview`,
+and `add` arrive later. See `docs/plans/` for the phases and the plans
+in the Scamp app repository for the whole road.
 
 ## Packages
 
-| Package                                     | What                                                                                      | Version |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework. `scampjs/runtime` types now; `scamp dev`, `build`, `preview`, `add` later. | 0.0.5   |
-| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                              | 0.0.2   |
-| `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                          | —       |
+| Package                                     | What                                                                                                 | Version |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------- |
+| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scampjs/runtime`, `scampjs/templates`. `build`, `preview`, `add` later. | 0.1.0   |
+| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                                         | 0.0.2   |
+| `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                                     | —       |
 
 ## The contract
 
@@ -42,8 +43,12 @@ in the contract matches it.
 ```bash
 nvm use            # Node 24
 npm ci
-npm run check      # lint, format, typecheck, test, build, pack dry-run
+npm run check      # lint, format, typecheck, build, test, pack dry-run
 ```
+
+`npm test` builds first: the CLI test runs the built binary. To try the
+dev server by hand, `cd packages/framework/fixtures/contract-0 && node
+../../bin/scamp.js dev`, then open the printed URL or `/_views/Lobby`.
 
 Releases are tagged `<package>@<version>` and published by CI.
 

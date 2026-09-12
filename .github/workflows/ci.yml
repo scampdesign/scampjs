@@ -18,8 +18,8 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm test
       - run: npm run build
+      - run: npm test
       # Proves every workspace packs cleanly without asking the registry
       # (a publish dry run refuses once the version exists). Real publishes
       # happen from release.yml on a `<package>@<version>` tag.

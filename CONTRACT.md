@@ -1,6 +1,6 @@
 # The Scamp contract
 
-Contract version: **0**
+Contract version: **1**
 
 This is the one document the Scamp framework (this repository) and the
 Scamp app implement against. It states shapes, shows the canonical
@@ -29,7 +29,7 @@ Additions never bump it.
 | Contract | Introduced by             | Means                                                              |
 | -------- | ------------------------- | ------------------------------------------------------------------ |
 | 0        | this repository's phase 0 | Documented. Types exported. Nothing runs.                          |
-| 1        | phase 2                   | `scamp dev`, the readiness line, `/_views/`, the templates export. |
+| 1        | this repository's phase 2 | `scamp dev`, the readiness line, `/_views/`, the templates export. |
 | 2        | phase 6                   | API handler shapes, the Database section, recipes.                 |
 
 The app declares a supported range and reads the installed package's
@@ -415,7 +415,23 @@ framework and in the project's `tsconfig.json`, and `react` maps to
 A project on another framework sets the same alias and the files run
 unchanged. That is the portability promise.
 
-### 1.9 What the framework ignores
+### 1.9 `scampjs/runtime` exports
+
+| Export           | Kind      | Meaning                                                                                                    |
+| ---------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| `LoadContext`    | type      | Section 1.5.                                                                                               |
+| `RouteProps`     | type      | Section 1.5.                                                                                               |
+| `RenderMode`     | type      | `'static' \| 'server' \| 'client'`.                                                                        |
+| `Params`         | type      | `Record<string, string>`.                                                                                  |
+| `Env`            | interface | Section 1.6.                                                                                               |
+| `ViewMeta`       | type      | Section 1.4.                                                                                               |
+| `useParams()`    | function  | The matched params, during server render and after hydration in the browser.                               |
+| `Link`           | component | An anchor: `<Link href="/about">About</Link>`. A full navigation; there is no client router at contract 1. |
+| `navigate(href)` | function  | `location.assign` in the browser; a no-op on the server.                                                   |
+
+Views import none of these.
+
+### 1.10 What the framework ignores
 
 `scamp.config.json`, `.scamp/`, `agent.md`, `CLAUDE.md`, and
 `design/DESIGN.md` belong to the app or to the user. The framework
@@ -425,8 +441,8 @@ never reads them and never writes them.
 
 ## 2. CLI
 
-Specified at contract 0, implemented at contract 1, consumed by the
-app from its phase 3. The binary is `scamp`.
+Implemented at contract 1, consumed by the app from its phase 3. The
+binary is `scamp`.
 
 ### 2.1 `scamp dev [--port <n>] [--json]`
 
@@ -455,8 +471,22 @@ line, one per request and one per failure:
 { "t": "2026-09-10T15:00:01.000Z", "kind": "error", "path": "/game/KZQ4/lobby", "message": "…", "stack": "…" }
 ```
 
-Without `--json`, the same information is printed for humans and its
-format is not part of the contract.
+Without `--json`, the same information is printed for humans on
+stderr, and its format is not part of the contract.
+
+**What the dev server does with a route.** It runs `load()` with a
+`LoadContext` whose `env` is `process.env` overlaid with the project's
+`.dev.vars` (one `KEY=value` per line), renders the route on the
+server inside the document shell with `design/theme.css` first and
+every stylesheet the route's modules import inlined after it, and:
+
+- for `render = 'client'`, serialises `{ params, data }` into the page
+  and hydrates the route in the browser;
+- for `static` and `server`, ships no JavaScript beyond Vite's client.
+  Islands from `_scamp.events` arrive with `scamp build`.
+
+Any change under the project reloads open pages. A route error is a
+`500` whose body is the message and stack.
 
 ### 2.2 `/_views/<Name>` and `/_views/`
 
@@ -481,9 +511,9 @@ as `{ "views": ["Home", "Lobby"] }`. Components are not listed.
 ## 3. Templates export
 
 `scampjs/templates` is how `create-scampjs` and the app's New project
-scaffold identical files from one source. Contract 0 exports the
-types; the implementations arrive with contract 1, ported from the
-app's `src/shared/templates/`.
+scaffold identical files from one source. Contract 1 exports the
+implementations `projectTemplate`, `viewTemplate`, and
+`componentTemplate`, with these types:
 
 ```ts
 type FileMap = Record<string, string>;                       // relative path → contents
@@ -494,7 +524,10 @@ type ComponentTemplate = (name: string) => FileMap;          // components/<Name
 
 A scaffolded view or component is the empty form of section 1.2: the
 imports, the props type with only `className`, the root element, and
-the `_scamp` export with empty `events`.
+the `_scamp` export with empty `events`. The project template writes
+`package.json` (with `scampjs` pinned to the version that wrote it),
+`tsconfig.json`, `scamp-env.d.ts`, `.gitignore`, an `agent.md` stub,
+`design/theme.css`, `routes/index.tsx`, and `views/Home/`.
 
 ---
 

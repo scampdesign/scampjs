@@ -4,6 +4,7 @@ dist
 .DS_Store
 .vite
 coverage
+packages/framework/test/.tmp
 
 # Copied into the package by `prepack` so they ship on npm; the root
 # copies are the source of truth.

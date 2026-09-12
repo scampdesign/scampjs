@@ -3,10 +3,11 @@
  * `scampjs.contract` key in package.json; a test keeps the two equal.
  * See CONTRACT.md at the repository root for what each version means.
  */
-export const CONTRACT_VERSION = 0 as const;
+export const CONTRACT_VERSION = 1 as const;
 
 export type {
   Env,
+  LinkProps,
   LoadContext,
   Params,
   RenderMode,

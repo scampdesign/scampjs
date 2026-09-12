@@ -1,18 +1,20 @@
 /**
- * `scampjs/runtime` — the types a route file and a view file are written
- * against. Contract 0 ships types only; the runtime helpers (`Link`,
- * `useParams`, `navigate`) arrive with contract 1.
+ * `scampjs/runtime` — what a route file imports. Types for `load()` and
+ * the route component, plus three helpers: `Link`, `useParams`, and
+ * `navigate`. Views import nothing from here; that is the portability
+ * promise in CONTRACT.md.
  *
- * Nothing here imports Preact, Vite, or Hono. A route file that imports
- * from this module stays portable to any other framework with one
- * wrapper, which is the portability promise in CONTRACT.md.
+ * Preact is the only import. Nothing here touches Vite or Hono.
  */
+import { h } from 'preact';
+import type { ComponentChildren, JSX } from 'preact';
+import { currentParams } from './params.js';
 
 /**
  * Bindings and secrets available to `load()` and API handlers. Each
- * deploy adapter fills it: Cloudflare from Worker bindings, Node from
- * `process.env` plus adapter config. Empty by default; a project
- * augments it in `scamp-env.d.ts`:
+ * deploy adapter fills it; the dev server fills it from `.dev.vars`
+ * and `process.env`. Empty by default; a project augments it in
+ * `scamp-env.d.ts`:
  *
  *   declare module 'scampjs/runtime' {
  *     interface Env { DB: D1Database }
@@ -64,3 +66,25 @@ export type ViewMeta = {
   readonly contract: number;
   readonly events: readonly string[];
 };
+
+/**
+ * The params of the route being rendered, on the server during render
+ * and in the browser after hydration. Typed by the caller, as `load()`
+ * types its own `LoadContext<P>`.
+ */
+export const useParams = <P extends Params = Params>(): P =>
+  currentParams() as P;
+
+/** Go to another page. A full navigation; there is no client router. */
+export const navigate = (href: string): void => {
+  if (typeof location !== 'undefined') location.assign(href);
+};
+
+export type LinkProps = Omit<JSX.HTMLAttributes<HTMLAnchorElement>, 'href'> & {
+  href: string;
+  children?: ComponentChildren;
+};
+
+/** An anchor. Exists so a route file has one import for links, not a convention. */
+export const Link = ({ href, children, ...rest }: LinkProps): JSX.Element =>
+  h('a', { ...rest, href }, children);

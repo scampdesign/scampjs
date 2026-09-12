@@ -1,7 +1,7 @@
 {
   "name": "scampjs",
-  "version": "0.0.5",
-  "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 0: types and the contract only; nothing runs yet.",
+  "version": "0.1.0",
+  "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 1: scamp dev, /_views/, the readiness line, and the templates export.",
   "license": "MIT",
   "author": "Angie Hemans",
   "homepage": "https://github.com/scampdesign/scampjs#readme",
@@ -37,6 +37,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "bin",
     "dist",
     "CONTRACT.md",
     "LICENSE",
@@ -46,7 +47,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scampjs": {
-    "contract": 0
+    "contract": 1
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
@@ -54,5 +55,20 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "hono": "^4.13.7",
+    "preact-render-to-string": "^6.7.0",
+    "vite": "^8.3.0"
+  },
+  "devDependencies": {
+    "preact": "^10.29.8"
+  },
+  "bin": {
+    "scamp": "bin/scamp.js"
+  },
+  "peerDependencies": {
+    "preact": ">=10.29.0"
   }
 }
