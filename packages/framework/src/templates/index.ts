@@ -146,6 +146,17 @@ dist
 .scamp
 `;
 
+/**
+ * The framework's document shell has no layout of its own, so the body
+ * rules a Next.js layout sets inline live in the theme, where the
+ * contract puts body rules (section 1.7). The Scamp canvas assumes them.
+ */
+const BODY_RULES = `body {
+  margin: 0;
+  min-height: 100vh;
+}
+`;
+
 const HOME_ROUTE = `import Home from '@/views/Home/Home';
 
 export const render = 'static';
@@ -175,7 +186,7 @@ export const projectTemplate: ProjectTemplate = ({ name }) => ({
   'scamp-env.d.ts': SCAMP_ENV,
   '.gitignore': GITIGNORE,
   'agent.md': agentMd(name),
-  'design/theme.css': DEFAULT_THEME_CSS,
+  'design/theme.css': `${DEFAULT_THEME_CSS}\n${BODY_RULES}`,
   'routes/index.tsx': HOME_ROUTE,
   ...viewTemplate('Home'),
 });

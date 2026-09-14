@@ -1,7 +1,7 @@
 {
   "name": "create-scampjs",
-  "version": "0.0.2",
-  "description": "Scaffold a Scamp framework project with `npm create scampjs`. Not functional yet: this release reserves the name and points at the repository.",
+  "version": "0.1.0",
+  "description": "Scaffold a Scamp-framework project with `npm create scampjs`: the framework's own templates, so the files match what the Scamp app writes.",
   "license": "MIT",
   "author": "Angie Hemans",
   "homepage": "https://github.com/scampdesign/scampjs#readme",
@@ -34,5 +34,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "scampjs": "^0.2.0"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "scampjs",
-  "version": "0.1.0",
-  "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. Contract 1: scamp dev, /_views/, the readiness line, and the templates export.",
+  "version": "0.2.0",
+  "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. scamp dev, scamp build, scamp preview, and the templates export.",
   "license": "MIT",
   "author": "Angie Hemans",
   "homepage": "https://github.com/scampdesign/scampjs#readme",

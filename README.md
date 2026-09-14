@@ -13,20 +13,22 @@ Remix, or Vite project unchanged.
 
 ## Status
 
-**Contract 1: `scamp dev` runs.** The dev server serves a project's
-routes with `load()`, renders every view at `/_views/<Name>`, prints
-the readiness line the Scamp app watches for, and the templates export
-scaffolds projects, views, and components. `scamp build`, `preview`,
-and `add` arrive later. See `docs/plans/` for the phases and the plans
-in the Scamp app repository for the whole road.
+**Contract 1: create, run, build, deploy.** `npm create scampjs`
+scaffolds a project; `scamp dev` serves its routes with `load()` and
+renders every view at `/_views/<Name>`; `scamp build` prerenders it into
+a folder any static host serves, with no JavaScript on a route whose
+views declare no events; `scamp preview` serves that folder. Server
+rendering per request and `scamp add` arrive with the first adapter.
+See `docs/reference/` for routing, `load()`, rendering modes, and the
+files, and `docs/plans/` for the phases.
 
 ## Packages
 
-| Package                                     | What                                                                                                 | Version |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scampjs/runtime`, `scampjs/templates`. `build`, `preview`, `add` later. | 0.1.0   |
-| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`. A stub that points here until phase 4.                                         | 0.0.2   |
-| `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                                     | —       |
+| Package                                     | What                                                                                                | Version |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
+| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scamp build`, `scamp preview`, `scampjs/runtime`, `scampjs/templates`. | 0.2.0   |
+| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`: scaffolds a project from the framework's templates.                           | 0.1.0   |
+| `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                                    | —       |
 
 ## The contract
 

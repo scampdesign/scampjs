@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       'packages/framework/fixtures/**',
+      '**/test/.tmp/**',
       'coverage/**',
     ],
   },

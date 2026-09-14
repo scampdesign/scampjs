@@ -111,5 +111,8 @@ describe('projectTemplate', () => {
     expect(files['design/theme.css']).toContain(
       'body {\n  font-family: var(--font-sans);\n}',
     );
+    expect(files['design/theme.css']).toContain(
+      'body {\n  margin: 0;\n  min-height: 100vh;\n}',
+    );
   });
 });

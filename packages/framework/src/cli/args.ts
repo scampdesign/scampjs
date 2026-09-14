@@ -4,7 +4,9 @@ export type DevArgs = { port: number; json: boolean };
 
 export type ParsedArgs =
   | { command: 'dev'; args: DevArgs }
-  | { command: 'build' | 'preview' | 'add'; args: string[] }
+  | { command: 'build' }
+  | { command: 'preview'; args: { port: number } }
+  | { command: 'add'; args: string[] }
   | { command: 'version' }
   | { command: 'help' }
   | { command: 'error'; message: string };
@@ -12,19 +14,23 @@ export type ParsedArgs =
 export const USAGE = `Usage: scamp <command>
 
   scamp dev [--port <n>] [--json]   start the dev server
-  scamp build                       (arrives with a later release)
-  scamp preview                     (arrives with a later release)
+  scamp build                       prerender every route into dist/
+  scamp preview [--port <n>]        serve dist/ as a static host would
   scamp add <recipe>                (arrives with a later release)
 
   scamp --version
 `;
 
-const parseDev = (argv: ReadonlyArray<string>): ParsedArgs => {
+const parsePort = (
+  command: string,
+  argv: ReadonlyArray<string>,
+  allowJson: boolean,
+): { port: number; json: boolean } | { command: 'error'; message: string } => {
   let port = 0;
   let json = false;
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i] ?? '';
-    if (arg === '--json') {
+    if (allowJson && arg === '--json') {
       json = true;
       continue;
     }
@@ -55,7 +61,19 @@ const parseDev = (argv: ReadonlyArray<string>): ParsedArgs => {
     }
     port = n;
   }
-  return { command: 'dev', args: { port, json } };
+  return { port, json };
+};
+
+const parseDev = (argv: ReadonlyArray<string>): ParsedArgs => {
+  const parsed = parsePort('dev', argv, true);
+  return 'command' in parsed ? parsed : { command: 'dev', args: parsed };
+};
+
+const parsePreview = (argv: ReadonlyArray<string>): ParsedArgs => {
+  const parsed = parsePort('preview', argv, false);
+  return 'command' in parsed
+    ? parsed
+    : { command: 'preview', args: { port: parsed.port } };
 };
 
 export const parseArgs = (argv: ReadonlyArray<string>): ParsedArgs => {
@@ -72,7 +90,14 @@ export const parseArgs = (argv: ReadonlyArray<string>): ParsedArgs => {
     case 'dev':
       return parseDev(rest);
     case 'build':
+      return rest.length === 0
+        ? { command: 'build' }
+        : {
+            command: 'error',
+            message: `scamp build takes no options, got: ${rest.join(' ')}`,
+          };
     case 'preview':
+      return parsePreview(rest);
     case 'add':
       return { command, args: rest };
     default:

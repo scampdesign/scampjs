@@ -498,13 +498,58 @@ unknown name is `404`.
 `GET /_views/` returns `application/json`: the view names, sorted,
 as `{ "views": ["Home", "Lobby"] }`. Components are not listed.
 
-### 2.3 Reserved
+### 2.3 `scamp build`
 
-| Command              | Arrives with                                                                                                     |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `scamp build`        | contract 1 (phase 4): prerender `static`, bundle `server`, SPA entry for `client`; islands from `_scamp.events`. |
-| `scamp preview`      | contract 1 (phase 4): serve the build as an adapter would.                                                       |
-| `scamp add <recipe>` | contract 2 (phase 6): apply a recipe from the templates export; `drizzle` first.                                 |
+Prerenders the project into `dist/`, a folder any static host serves:
+`dist/<path>/index.html` per page (`dist/index.html` for `/`), the
+stylesheets and scripts under `dist/assets/`, and `public/` copied over
+the result. Exit `0` with a summary line on stdout, `1` with every
+refused route and its fix on stderr, and nothing written when any route
+is refused.
+
+Per route, from its exports:
+
+| Route                                     | Result                                             |
+| ----------------------------------------- | -------------------------------------------------- |
+| `static`, no dynamic segment              | One page; `load()` runs at build time              |
+| `static`, dynamic segments, `params()`    | One page per entry of `params()`                   |
+| `static`, dynamic segments, no `params()` | Refused: add `params()` or use a server adapter    |
+| `client`                                  | As `static`, and the page hydrates in the browser  |
+| `server`                                  | Refused until a server adapter exists (contract 2) |
+
+`load()` receives a `LoadContext` whose `request` is a `Request` for the
+page's URL and whose `env` is `process.env` overlaid with `.dev.vars`.
+
+**JavaScript.** A route ships JavaScript when it is `client`, or when a
+view or component it renders declares event props in its `_scamp`
+export. Otherwise its pages carry HTML and stylesheets only. The unit
+that hydrates is the route: its handlers are defined in the route
+file, so the page carries `{ params, data }` as JSON and the route
+renders again in the browser from them. The browser bundle imports only
+the route's default export, so `load()` and what it alone imports are
+not shipped.
+
+**Stylesheets.** Every page links `design/theme.css` first, then the
+CSS modules its route reached, as hashed files under `dist/assets/`.
+
+### 2.4 `scamp preview [--port <n>]`
+
+Serves `dist/` as a static host would: a path resolves to
+`<path>/index.html` or to a file, with no rewrites, and anything else is
+`404`. Readiness is one line on stdout,
+`scamp preview ready http://127.0.0.1:<port>`, in the shape of
+section 2.1.
+
+### 2.5 Reserved
+
+| Command              | Arrives with                                                                     |
+| -------------------- | -------------------------------------------------------------------------------- |
+| `scamp add <recipe>` | contract 2 (phase 6): apply a recipe from the templates export; `drizzle` first. |
+
+-------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `scamp build` | contract 1 (phase 4): prerender `static`, bundle `server`, SPA entry for `client`; islands from `_scamp.events`. |
+| `scamp preview` | contract 1 (phase 4): serve the build as an adapter would. |
+| `scamp add <recipe>` | contract 2 (phase 6): apply a recipe from the templates export; `drizzle` first. |
 
 ---
 

@@ -117,15 +117,35 @@ describe('the scamp binary', () => {
     expect(result.stderr).toContain('scamp dev could not start');
   });
 
-  it('build, preview, and add say which release brings them and exit 1', () => {
-    for (const command of ['build', 'preview', 'add']) {
-      const result = spawnSync(process.execPath, [bin, command], {
-        cwd: fixture,
-        encoding: 'utf8',
-      });
-      expect(result.status).toBe(1);
-      expect(result.stderr).toContain('later scampjs release');
-    }
+  it('add says which release brings it and exits 1', () => {
+    const result = spawnSync(process.execPath, [bin, 'add', 'drizzle'], {
+      cwd: fixture,
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('later scampjs release');
+  });
+
+  it("build refuses the fixture's lobby route, which needs a server, and says so", () => {
+    // The contract-0 fixture's lobby is a dynamic client route with load()
+    // and no params(): exactly what a static folder cannot serve.
+    const result = spawnSync(process.execPath, [bin, 'build'], {
+      cwd: fixture,
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('routes/game/[token]/lobby.tsx');
+    expect(result.stderr).toContain('params()');
+  }, 60_000);
+
+  it('preview exits 1 without a dist/ folder', () => {
+    const result = spawnSync(process.execPath, [bin, 'preview'], {
+      cwd: resolve(fixture, 'views'),
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('scamp build first');
   });
 
   it('--version prints the package version', () => {

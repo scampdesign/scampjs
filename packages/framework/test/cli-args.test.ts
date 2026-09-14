@@ -28,7 +28,17 @@ describe('parseArgs', () => {
   });
 
   it('names the reserved commands and help and version', () => {
-    expect(parseArgs(['build'])).toEqual({ command: 'build', args: [] });
+    expect(parseArgs(['build'])).toEqual({ command: 'build' });
+    expect(parseArgs(['build', '--watch']).command).toBe('error');
+    expect(parseArgs(['preview'])).toEqual({
+      command: 'preview',
+      args: { port: 0 },
+    });
+    expect(parseArgs(['preview', '--port', '4174'])).toEqual({
+      command: 'preview',
+      args: { port: 4174 },
+    });
+    expect(parseArgs(['preview', '--json']).command).toBe('error');
     expect(parseArgs(['add', 'drizzle'])).toEqual({
       command: 'add',
       args: ['drizzle'],

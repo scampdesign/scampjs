@@ -5,6 +5,9 @@
  */
 export const CONTRACT_VERSION = 1 as const;
 
+export { buildProject, BuildError } from './build/build.js';
+export type { BuildResult, BuiltRoute } from './build/build.js';
+
 export type {
   Env,
   LinkProps,

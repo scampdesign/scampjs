@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -p packages/framework/tsconfig.json --noEmit",
+    "typecheck": "tsc -p packages/framework/tsconfig.json --noEmit && tsc -p packages/create-scampjs/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

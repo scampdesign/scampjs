@@ -7,6 +7,8 @@ export type ShellOptions = {
   title: string;
   /** Inlined `<style>` blocks, theme first. */
   styles: ReadonlyArray<string>;
+  /** `<link rel="stylesheet">` hrefs, before the inlined blocks. */
+  links?: ReadonlyArray<string>;
   /** Rendered markup for `#scamp-root`. */
   body: string;
   /** `<script type="module">` sources, in order. */
@@ -29,6 +31,9 @@ export const escapeHtml = (text: string): string =>
 const escapeJson = (json: string): string => json.replace(/</g, '\\u003c');
 
 export const documentShell = (opts: ShellOptions): string => {
+  const links = (opts.links ?? []).map(
+    (href) => `<link rel="stylesheet" href="${escapeHtml(href)}">`,
+  );
   const styles = opts.styles.map((css) => `<style>${css}</style>`);
   const scripts = (opts.scripts ?? []).map(
     (src) => `<script type="module" src="${escapeHtml(src)}"></script>`,
@@ -46,6 +51,7 @@ export const documentShell = (opts: ShellOptions): string => {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${escapeHtml(opts.title)}</title>`,
+    ...links,
     ...styles,
     '</head>',
     '<body>',
