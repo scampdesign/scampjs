@@ -9,6 +9,7 @@ export { buildProject, BuildError } from './build/build.js';
 export type { BuildResult, BuiltRoute } from './build/build.js';
 
 export type {
+  ApiHandler,
   Env,
   LinkProps,
   LoadContext,

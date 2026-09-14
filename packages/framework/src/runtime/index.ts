@@ -51,6 +51,15 @@ export type RouteProps<L = undefined> = {
 };
 
 /**
+ * A plain API handler: one named export per method (`GET`, `POST`, …)
+ * in a file under `routes/api/`, over the same `LoadContext` as
+ * `load()`, returning a standard `Response`. Needs no import.
+ */
+export type ApiHandler<P extends Params = Params> = (
+  ctx: LoadContext<P>,
+) => Response | Promise<Response>;
+
+/**
  * The per-route rendering mode, exported as `export const render`.
  * Default is `static`.
  */

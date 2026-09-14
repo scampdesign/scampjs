@@ -9,7 +9,7 @@ import { projectTemplate } from '../src/templates/index.js';
 // env; it sits inside the repo so `preact` resolves through the
 // workspace's node_modules.
 
-const fixture = resolve(import.meta.dirname, '..', 'fixtures', 'contract-0');
+const fixture = resolve(import.meta.dirname, '..', 'fixtures', 'contract-2');
 const tmp = resolve(import.meta.dirname, '.tmp', 'scaffold');
 
 const quiet = { write: (): boolean => true };
@@ -111,6 +111,29 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect(res.status).toBe(200);
     expect(res.text).toContain('/components/LinkCard/LinkCard.tsx');
     expect(res.text).not.toContain("from '@/");
+  });
+
+  it('POST /api/games/KZQ4/start runs the plain handler with params and env', async () => {
+    const res = await fetch(`${server.url}/api/games/KZQ4/start`, {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      game: { token: 'KZQ4', started: true },
+    });
+    const wrong = await fetch(`${server.url}/api/games/KZQ4/start`);
+    expect(wrong.status).toBe(405);
+    expect(wrong.headers.get('allow')).toBe('POST');
+  });
+
+  it('GET /api/health and its sub-path come from the default Hono app', async () => {
+    expect(await (await fetch(`${server.url}/api/health`)).json()).toEqual({
+      ok: true,
+    });
+    expect(await (await fetch(`${server.url}/api/health/deep`)).text()).toBe(
+      'deep',
+    );
+    expect((await fetch(`${server.url}/api/nope`)).status).toBe(404);
   });
 
   it('GET of an unknown path is 404', async () => {

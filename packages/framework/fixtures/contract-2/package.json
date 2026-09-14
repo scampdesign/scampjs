@@ -1,0 +1,15 @@
+{
+  "name": "contract-2-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "scamp dev",
+    "build": "scamp build",
+    "preview": "scamp preview"
+  },
+  "dependencies": {
+    "preact": "^10.29.0",
+    "scampjs": "^0.3.0",
+    "hono": "^4.13.0"
+  }
+}

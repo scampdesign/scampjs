@@ -17,7 +17,8 @@ import { readEnv } from './env.js';
 import { createLog } from './log.js';
 import type { Log } from './log.js';
 import { renderRoute, renderView } from './render.js';
-import { matchRoute, scanRoutes } from './routes.js';
+import { handleApiRequest } from '../server/api.js';
+import { matchRoute, scanApiRoutes, scanRoutes } from './routes.js';
 import type { RouteEntry } from './routes.js';
 import { scampPlugin } from './vitePlugin.js';
 import { listViews, VIEW_NAME } from './views.js';
@@ -78,6 +79,7 @@ const buildApp = (
   vite: ViteDevServer,
   root: string,
   routes: () => RouteEntry[],
+  apiRoutes: () => RouteEntry[],
   log: Log,
 ): Hono => {
   const app = new Hono();
@@ -91,6 +93,15 @@ const buildApp = (
   app.all('*', async (c) => {
     const path = c.req.path;
     if (path.startsWith('/_views')) return c.text('Not found', 404);
+    if (path === '/api' || path.startsWith('/api/')) {
+      const answer = await handleApiRequest(
+        apiRoutes(),
+        c.req.raw,
+        readEnv(root),
+        (file) => vite.ssrLoadModule(`/routes/${file}`),
+      );
+      return answer ?? c.text('Not found', 404);
+    }
     const match = matchRoute(routes(), path);
     if (match === null) return c.text('Not found', 404);
     const page = await renderRoute({
@@ -141,9 +152,14 @@ export const createDevServer = async (
   // renders always see the current table.
   const routesDir = join(root, 'routes');
   let routes: RouteEntry[] | null = null;
+  let apiRoutes: RouteEntry[] | null = null;
   const currentRoutes = (): RouteEntry[] => {
     routes ??= scanRoutes(routesDir);
     return routes;
+  };
+  const currentApiRoutes = (): RouteEntry[] => {
+    apiRoutes ??= scanApiRoutes(routesDir);
+    return apiRoutes;
   };
   const inside = (file: string): boolean => {
     const rel = relative(root, file);
@@ -162,12 +178,13 @@ export const createDevServer = async (
       !relative(routesDir, file).startsWith('..')
     ) {
       routes = null;
+      apiRoutes = null;
     }
     vite.ws.send({ type: 'full-reload', path: '*' });
   });
 
   const hono = getRequestListener(
-    buildApp(vite, root, currentRoutes, log).fetch,
+    buildApp(vite, root, currentRoutes, currentApiRoutes, log).fetch,
   );
   httpServer.on('request', (req: IncomingMessage, res: ServerResponse) => {
     const started = performance.now();

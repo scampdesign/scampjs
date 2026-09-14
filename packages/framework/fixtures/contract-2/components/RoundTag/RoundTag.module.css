@@ -1,0 +1,12 @@
+.root {
+  width: 100%;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-accent);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-bg);
+  position: relative;
+  display: inline-flex;
+}
