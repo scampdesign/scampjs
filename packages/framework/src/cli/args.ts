@@ -6,7 +6,7 @@ export type ParsedArgs =
   | { command: 'dev'; args: DevArgs }
   | { command: 'build' }
   | { command: 'preview'; args: { port: number } }
-  | { command: 'add'; args: string[] }
+  | { command: 'add'; args: { recipe: string; dialect?: string; force: boolean } }
   | { command: 'version' }
   | { command: 'help' }
   | { command: 'error'; message: string };
@@ -16,7 +16,8 @@ export const USAGE = `Usage: scamp <command>
   scamp dev [--port <n>] [--json]   start the dev server
   scamp build                       prerender every route into dist/
   scamp preview [--port <n>]        serve dist/ as a static host would
-  scamp add <recipe>                (arrives with a later release)
+  scamp add drizzle [--dialect sqlite|postgres|d1] [--force]
+                                    add a database through Drizzle
 
   scamp --version
 `;
@@ -64,6 +65,25 @@ const parsePort = (
   return { port, json };
 };
 
+const parseAdd = (argv: ReadonlyArray<string>): ParsedArgs => {
+  const [recipe, ...rest] = argv;
+  if (recipe === undefined || recipe.startsWith('-')) {
+    return { command: 'error', message: 'scamp add needs a recipe name, e.g. scamp add drizzle.' };
+  }
+  let dialect: string | undefined;
+  let force = false;
+  for (let i = 0; i < rest.length; i += 1) {
+    const arg = rest[i] ?? '';
+    if (arg === '--force') force = true;
+    else if (arg === '--dialect') {
+      dialect = rest[i + 1];
+      i += 1;
+    } else if (arg.startsWith('--dialect=')) dialect = arg.slice('--dialect='.length);
+    else return { command: 'error', message: `Unknown option for scamp add: ${arg}` };
+  }
+  return { command: 'add', args: { recipe, ...(dialect === undefined ? {} : { dialect }), force } };
+};
+
 const parseDev = (argv: ReadonlyArray<string>): ParsedArgs => {
   const parsed = parsePort('dev', argv, true);
   return 'command' in parsed ? parsed : { command: 'dev', args: parsed };
@@ -99,7 +119,7 @@ export const parseArgs = (argv: ReadonlyArray<string>): ParsedArgs => {
     case 'preview':
       return parsePreview(rest);
     case 'add':
-      return { command, args: rest };
+      return parseAdd(rest);
     default:
       return { command: 'error', message: `Unknown command: ${command}` };
   }

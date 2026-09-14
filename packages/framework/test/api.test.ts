@@ -55,9 +55,9 @@ const ctx = (method: string, path: string, body?: string): Request =>
 
 describe('dispatchApi', () => {
   const plain = {
-    GET: ({ params }: { params: Record<string, string> }) =>
+    GET: ({ params }: { params: Record<string, string> }): Response =>
       Response.json({ token: params['token'] }),
-    POST: async ({ request }: { request: Request }) =>
+    POST: async ({ request }: { request: Request }): Promise<Response> =>
       new Response(await request.text(), { status: 201 }),
   };
   const segments = segs('api/games/[token]/start.ts') ?? [];

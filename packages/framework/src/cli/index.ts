@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { BuildError, buildProject } from '../build/build.js';
 import { createPreviewServer } from '../build/preview.js';
 import { createDevServer } from '../dev/server.js';
+import { runAdd } from './add.js';
 import { parseArgs, USAGE } from './args.js';
 
 const version = (): string => {
@@ -75,10 +76,23 @@ export const main = async (argv: ReadonlyArray<string>): Promise<number> => {
       process.stderr.write(`${parsed.message}\n\n${USAGE}`);
       return 1;
     case 'add':
-      process.stderr.write(
-        `scamp add arrives with a later scampjs release. Follow https://github.com/scampdesign/scampjs.\n`,
-      );
-      return 1;
+      try {
+        const result = runAdd(process.cwd(), parsed.args.recipe, {
+          ...(parsed.args.dialect === undefined ? {} : { dialect: parsed.args.dialect }),
+          force: parsed.args.force,
+        });
+        if (result.written.length === 0) {
+          process.stdout.write(`${parsed.args.recipe} is already applied; nothing to do.\n`);
+        } else {
+          process.stdout.write(
+            `Wrote ${result.written.join(', ')}.\n\nNext:\n${result.next.map((n) => `  ${n}`).join('\n')}\n`,
+          );
+        }
+        return 0;
+      } catch (err) {
+        process.stderr.write(`scamp add failed: ${err instanceof Error ? err.message : String(err)}\n`);
+        return 1;
+      }
     case 'build':
       return runBuild();
     case 'preview':

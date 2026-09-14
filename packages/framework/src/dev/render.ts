@@ -10,7 +10,8 @@ import type { ComponentType } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import type { ModuleNode, ViteDevServer } from 'vite';
 import { CONTRACT_VERSION } from '../contract.js';
-import type { Env, LoadContext, Params, RenderMode } from '../runtime/index.js';
+import type { Params } from '../runtime/index.js';
+import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import { withParams } from '../runtime/params.js';
 import { documentShell } from './shell.js';
 import { entryUrl } from './vitePlugin.js';
@@ -72,56 +73,12 @@ export type RouteRenderInput = {
   env: Record<string, string>;
 };
 
-const loadRouteModule = async (
-  vite: ViteDevServer,
-  url: string,
-): Promise<{
-  component: ComponentType<{ params: Params; data: unknown }>;
-  load: ((ctx: LoadContext) => unknown) | null;
-  render: RenderMode;
-}> => {
-  const mod: unknown = await vite.ssrLoadModule(url);
-  if (!isRecord(mod) || !isFunction(mod['default'])) {
-    throw new Error(
-      `${url} has no default export; a route file exports a component.`,
-    );
-  }
-  const render = mod['render'];
-  if (
-    render !== undefined &&
-    render !== 'static' &&
-    render !== 'server' &&
-    render !== 'client'
-  ) {
-    throw new Error(`${url}: render must be 'static', 'server', or 'client'.`);
-  }
-  return {
-    component: mod['default'] as ComponentType<{
-      params: Params;
-      data: unknown;
-    }>,
-    load: isFunction(mod['load'])
-      ? (mod['load'] as (ctx: LoadContext) => unknown)
-      : null,
-    render: render ?? 'static',
-  };
-};
-
 /** Render a matched route: run `load()`, render the component, wrap it in the shell. */
 export const renderRoute = async (
   input: RouteRenderInput,
 ): Promise<RenderedPage> => {
   const url = `/routes/${input.file}`;
-  const route = await loadRouteModule(input.vite, url);
-  const ctx: LoadContext = {
-    params: input.params,
-    request: input.request,
-    env: input.env as unknown as Env,
-  };
-  const data: unknown = route.load === null ? undefined : await route.load(ctx);
-  const body = withParams(input.params, () =>
-    renderToString(h(route.component, { params: input.params, data })),
-  );
+  const route = routeModuleShape(await input.vite.ssrLoadModule(url), url);
   const styles = [
     themeCss(input.root),
     ...(await collectCss(input.vite, join(input.root, 'routes', input.file))),
@@ -130,12 +87,16 @@ export const renderRoute = async (
   // routes ship no JavaScript. Islands arrive with `scamp build`.
   const client = route.render === 'client';
   return {
-    html: documentShell({
-      title: input.file.replace(/\.(tsx|jsx|ts|js)$/, ''),
+    html: await renderPage({
+      route,
+      title: routeTitle(input.file),
+      params: input.params,
+      request: input.request,
+      env: input.env,
       styles,
-      body,
-      scripts: client ? [VITE_CLIENT, entryUrl(url)] : [VITE_CLIENT],
-      data: client ? JSON.stringify({ params: input.params, data }) : undefined,
+      baseScripts: [VITE_CLIENT],
+      entry: entryUrl(url),
+      javascript: client,
     }),
   };
 };

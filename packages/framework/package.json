@@ -34,7 +34,15 @@
       "types": "./dist/templates/index.d.ts",
       "default": "./dist/templates/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./server": {
+      "types": "./dist/server/app.d.ts",
+      "default": "./dist/server/app.js"
+    },
+    "./adapter": {
+      "types": "./dist/adapter/index.d.ts",
+      "default": "./dist/adapter/index.js"
+    }
   },
   "files": [
     "bin",

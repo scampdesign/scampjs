@@ -15,27 +15,38 @@ export type RouteFacts = {
 };
 
 export type RouteDecision =
-  { kind: 'prerender'; enumerate: boolean } | { kind: 'error'; reason: string };
+  | { kind: 'prerender'; enumerate: boolean }
+  | { kind: 'server' }
+  | { kind: 'error'; reason: string };
 
 /**
- * The static adapter prerenders; it cannot answer per request. A route
- * that needs a request — `server`, or a dynamic route with no `params()`
- * to enumerate — is an error that names the fix.
+ * With no adapter the output is a folder, which cannot answer per
+ * request: a `server` route, or a dynamic route with no `params()` to
+ * enumerate, is an error that names the fix. With an adapter those
+ * render per request in the server bundle; everything enumerable still
+ * prerenders, so the host's static layer answers what it can.
  */
-export const decide = (facts: RouteFacts): RouteDecision => {
+export const decide = (
+  facts: RouteFacts,
+  opts: { adapter: boolean } = { adapter: false },
+): RouteDecision => {
   if (facts.mode === 'server') {
-    return {
-      kind: 'error',
-      reason:
-        "render = 'server' needs a server adapter, which arrives with a later scampjs release. Use 'static' (with params() for dynamic segments) or 'client'.",
-    };
+    return opts.adapter
+      ? { kind: 'server' }
+      : {
+          kind: 'error',
+          reason:
+            'render = \'server\' needs a server adapter: set "scamp": { "adapter": "@scampjs/adapter-cloudflare" } in package.json, or use \'static\' (with params() for dynamic segments) or \'client\'.',
+        };
   }
   if (facts.dynamic && !facts.hasParams) {
-    return {
-      kind: 'error',
-      reason:
-        'a dynamic route prerenders one page per entry of an exported params(); add params(), or wait for a server adapter.',
-    };
+    return opts.adapter
+      ? { kind: 'server' }
+      : {
+          kind: 'error',
+          reason:
+            'a dynamic route prerenders one page per entry of an exported params(); add params(), or set a server adapter in package.json.',
+        };
   }
   return { kind: 'prerender', enumerate: facts.hasParams };
 };

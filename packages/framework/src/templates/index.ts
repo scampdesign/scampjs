@@ -199,3 +199,12 @@ export const projectTemplate: ProjectTemplate = ({
   'routes/index.tsx': HOME_ROUTE,
   ...viewTemplate('Home'),
 });
+
+export { applyRecipe, RecipeConflict } from './recipe.js';
+export type { Recipe } from './recipe.js';
+export {
+  DRIZZLE_DIALECTS,
+  drizzleRecipe,
+  isDrizzleDialect,
+} from './recipes/drizzle.js';
+export type { DrizzleDialect } from './recipes/drizzle.js';
