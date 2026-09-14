@@ -1,6 +1,6 @@
 # Phase 6 — API routes, the Drizzle recipe, the Cloudflare adapter — Plan
 
-Status: **in progress (2026-09-14).** Source: "Phase 6" of
+Status: **implemented on 2026-09-14; publish pending.** Source: "Phase 6" of
 `scamp/docs/plans/scamp-framework-tech-plan.md`; the design is "The
 server layer" and "The data layer" in `scamp-framework-plan.md`.
 Produces **contract 2**.
@@ -35,8 +35,15 @@ locally on SQLite with no code change.
 
 ## Done when
 
-- [ ] `scamp dev` serves plain and Hono API routes from `routes/api/`.
-- [ ] `scamp build` with the Cloudflare adapter emits `dist/_worker.js` and `wrangler.jsonc`, and the worker serves a server route, an API route, and a D1 `load()` under Miniflare.
-- [ ] The same project runs on `scamp dev` against SQLite with no code change.
-- [ ] `scamp add drizzle` and `npm create scampjs --db` write the recipe.
+- [x] `scamp dev` serves plain and Hono API routes from `routes/api/`.
+- [x] `scamp build` with the Cloudflare adapter emits `dist/_worker.js` and `wrangler.jsonc`, and the worker serves a server route, an API route, and a D1 `load()` under Miniflare.
+- [x] The same project runs on `scamp dev` against SQLite with no code change.
+- [x] `scamp add drizzle` and `npm create scampjs --db` write the recipe.
 - [ ] `scampjs` 0.3.0, `create-scampjs` 0.2.0, `@scampjs/adapter-cloudflare` 0.1.0 published; contract 2.
+
+## Not done here
+
+A real `wrangler deploy` needs an account; the Miniflare run is the
+same runtime with the same assets and D1 semantics, which is as close
+as a test gets. The Hono typed client (`hc`) needs nothing from the
+framework and is documented, not wrapped.

@@ -1,6 +1,6 @@
 {
   "name": "create-scampjs",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Scaffold a Scamp-framework project with `npm create scampjs`: the framework's own templates, so the files match what the Scamp app writes.",
   "license": "MIT",
   "author": "Angie Hemans",
@@ -36,6 +36,6 @@
     "access": "public"
   },
   "dependencies": {
-    "scampjs": "^0.2.1"
+    "scampjs": "^0.3.0"
   }
 }

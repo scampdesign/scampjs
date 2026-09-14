@@ -9,22 +9,24 @@ import { describe, expect, it } from 'vitest';
 // shapes, CLI lines, sketches of later contracts) are not checked.
 
 const root = resolve(import.meta.dirname, '..', '..', '..');
-const fixtureRoot = resolve(
-  import.meta.dirname,
-  '..',
-  'fixtures',
-  'contract-0',
-);
+const fixtureRootFor = (name: string): string =>
+  resolve(import.meta.dirname, '..', 'fixtures', name);
 const contract = readFileSync(join(root, 'CONTRACT.md'), 'utf8');
 
-type Quote = { path: string; body: string; line: number };
+type Quote = { fixture: string; path: string; body: string; line: number };
 
 const collectQuotes = (md: string): Quote[] => {
   const quotes: Quote[] = [];
-  const re = /<!-- fixture: ([^\s]+) -->\s*```[^\n]*\r?\n([\s\S]*?)```/g;
+  const re =
+    /<!-- fixture(?:\(([^)]+)\))?: ([^\s]+) -->\s*```[^\n]*\r?\n([\s\S]*?)```/g;
   for (const m of md.matchAll(re)) {
     const line = md.slice(0, m.index).split('\n').length;
-    quotes.push({ path: m[1] ?? '', body: m[2] ?? '', line });
+    quotes.push({
+      fixture: m[1] ?? 'contract-0',
+      path: m[2] ?? '',
+      body: m[3] ?? '',
+      line,
+    });
   }
   return quotes;
 };
@@ -43,15 +45,18 @@ describe('CONTRACT.md quotes the fixture', () => {
   });
 
   for (const q of quotes) {
-    it(`line ${q.line}: ${q.path}`, () => {
-      const file = readFileSync(join(fixtureRoot, q.path), 'utf8');
+    it(`line ${q.line}: ${q.fixture}/${q.path}`, () => {
+      const file = readFileSync(
+        join(fixtureRootFor(q.fixture), q.path),
+        'utf8',
+      );
       expect(file).toContain(q.body);
     });
   }
 });
 
 describe('fixture views and components', () => {
-  const files = walk(fixtureRoot).filter(
+  const files = walk(fixtureRootFor('contract-0')).filter(
     (f) => /[/\\](views|components)[/\\]/.test(f) && f.endsWith('.tsx'),
   );
 
@@ -60,7 +65,7 @@ describe('fixture views and components', () => {
   });
 
   for (const file of files) {
-    const rel = file.slice(fixtureRoot.length + 1);
+    const rel = file.slice(fixtureRootFor('contract-0').length + 1);
     const src = readFileSync(file, 'utf8');
 
     it(`${rel} ends with a _scamp export for contract 0`, () => {

@@ -424,7 +424,7 @@ export const buildProject = async (
           output: {
             entryFileNames: 'index.js',
             format: 'es',
-            inlineDynamicImports: true,
+            codeSplitting: false,
           },
         },
       },

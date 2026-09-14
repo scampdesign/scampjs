@@ -11,3 +11,4 @@ packages/framework/test/.tmp
 packages/framework/CONTRACT.md
 packages/framework/LICENSE
 packages/create-scampjs/LICENSE
+packages/adapter-cloudflare/test/.tmp

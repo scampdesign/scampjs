@@ -15,10 +15,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # The adapter's types come from the framework's dist, so build first.
+      - run: npm run build
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm run build
       - run: npm test
       # Proves every workspace packs cleanly without asking the registry
       # (a publish dry run refuses once the version exists). Real publishes

@@ -13,22 +13,23 @@ Remix, or Vite project unchanged.
 
 ## Status
 
-**Contract 1: create, run, build, deploy.** `npm create scampjs`
-scaffolds a project; `scamp dev` serves its routes with `load()` and
-renders every view at `/_views/<Name>`; `scamp build` prerenders it into
-a folder any static host serves, with no JavaScript on a route whose
-views declare no events; `scamp preview` serves that folder. Server
-rendering per request and `scamp add` arrive with the first adapter.
-See `docs/reference/` for routing, `load()`, rendering modes, and the
-files, and `docs/plans/` for the phases.
+**Contract 2: full stack.** `npm create scampjs` scaffolds a project,
+with a database through Drizzle if you ask; `scamp dev` serves its
+routes with `load()`, its API handlers under `routes/api/`, and every
+view at `/_views/<Name>`; `scamp build` prerenders what a folder can
+serve and, with an adapter, bundles a server for the rest;
+`@scampjs/adapter-cloudflare` deploys it to Workers or Pages with D1 as
+`env.DB`. See `docs/reference/` for routing, `load()`, rendering modes,
+API routes, the database, and deployment, and `docs/plans/` for the
+phases.
 
 ## Packages
 
-| Package                                     | What                                                                                                | Version |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scamp build`, `scamp preview`, `scampjs/runtime`, `scampjs/templates`. | 0.2.1   |
-| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`: scaffolds a project from the framework's templates.                           | 0.1.1   |
-| `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                                    | —       |
+| Package                                                      | What                                                                                                                                | Version |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| [`scampjs`](packages/framework)                              | The framework: `scamp dev`, `scamp build`, `scamp preview`, `scamp add`, `scampjs/runtime`, `scampjs/templates`, `scampjs/adapter`. | 0.3.0   |
+| [`create-scampjs`](packages/create-scampjs)                  | `npm create scampjs`: scaffolds a project from the framework's templates, with the database question.                               | 0.2.0   |
+| [`@scampjs/adapter-cloudflare`](packages/adapter-cloudflare) | Deploy to Cloudflare Workers (with static assets) or Pages.                                                                         | 0.1.0   |
 
 ## The contract
 

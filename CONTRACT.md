@@ -1,6 +1,6 @@
 # The Scamp contract
 
-Contract version: **1**
+Contract version: **2**
 
 This is the one document the Scamp framework (this repository) and the
 Scamp app implement against. It states shapes, shows the canonical
@@ -9,9 +9,10 @@ repository's `docs/plans/scamp-framework-plan.md`; the order of work is
 in `scamp-framework-tech-plan.md`. Nothing here explains why.
 
 Every fenced example preceded by a `<!-- fixture: … -->` marker is an
-exact quote from `packages/framework/fixtures/contract-0/`, and a test
-fails if the two drift. The fixture is a complete project in this
-shape.
+exact quote from `packages/framework/fixtures/contract-0/` (or, with a
+`<!-- fixture(contract-2): … -->` marker, from `fixtures/contract-2/`),
+and a test fails if the two drift. Each fixture is a complete project
+in this shape; contract 2 adds files to contract 0 and changes none.
 
 ## Versioning
 
@@ -30,7 +31,7 @@ Additions never bump it.
 | -------- | ------------------------- | ------------------------------------------------------------------ |
 | 0        | this repository's phase 0 | Documented. Types exported. Nothing runs.                          |
 | 1        | this repository's phase 2 | `scamp dev`, the readiness line, `/_views/`, the templates export. |
-| 2        | phase 6                   | API handler shapes, the Database section, recipes.                 |
+| 2        | this repository's phase 6 | API handler shapes, adapters, recipes, the Database section.       |
 
 The app declares a supported range and reads the installed package's
 `scampjs.contract` on project open (section 4).
@@ -48,6 +49,7 @@ my-project/
   components/<Name>/<Name>.tsx      ← same shape as a view; canvas default differs
   components/<Name>/<Name>.module.css
   routes/**                         ← logic       (yours; never scanned, never generated)
+  routes/api/**                     ← API handlers (yours; section 1.5)
   design/theme.css                  ← tokens and fonts (app-owned)
   design/DESIGN.md                  ← optional
   scamp-env.d.ts                    ← optional Env augmentation (yours)
@@ -291,8 +293,8 @@ a bump. The export is harmless under Next, Remix, or React.
 
 A file under `routes/` at any depth. Segment syntax: `index.tsx` for
 the folder's path, `[param]`, `[...rest]`, and `(group)` for a folder
-that adds no segment. `routes/api/**` is reserved for contract 2 and
-has no shape yet.
+that adds no segment. `routes/api/**` holds API handlers instead of
+pages (below).
 
 <!-- fixture: routes/game/[token]/lobby.tsx -->
 
@@ -346,6 +348,46 @@ export default function HomeRoute() {
 
 "Compute in logic, bind in the view": formatting, arithmetic, and
 mapping from a schema to a view's props all happen in the route file.
+
+**API handlers.** A file under `routes/api/` answers its path with the
+same segment syntax, the `api` prefix included:
+`routes/api/games/[token]/start.ts` is `/api/games/:token/start`. Two
+shapes, and the plain one is the default in every template:
+
+<!-- fixture(contract-2): routes/api/games/[token]/start.ts -->
+
+```ts
+import type { LoadContext } from 'scampjs/runtime';
+import { startGame } from '@/lib/game';
+
+export const POST = async ({ params, env }: LoadContext<{ token: string }>) => {
+  const game = await startGame(env.DB, params.token);
+  return Response.json({ game });
+};
+```
+
+One named export per method (`GET`, `HEAD`, `POST`, `PUT`, `PATCH`,
+`DELETE`, `OPTIONS`), typed `ApiHandler<P>` from `scampjs/runtime`:
+`(ctx: LoadContext<P>) => Response | Promise<Response>`. A method the
+file lacks is `405` with an `Allow` header; `HEAD` falls back to `GET`.
+Nothing is imported from Hono.
+
+The other shape is a default-exported Hono app, mounted at the file's
+path, for routing inside the file, middleware, and Hono's typed client:
+
+<!-- fixture(contract-2): routes/api/health.ts -->
+
+```ts
+import { Hono } from 'hono';
+
+export default new Hono()
+  .get('/', (c) => c.json({ ok: true }))
+  .get('/deep', (c) => c.text('deep'));
+```
+
+`/api/health` and `/api/health/deep` both reach it; its routes are
+relative to the mount, and params in the file's path are visible to
+it. The exact file wins over a mounted app on a prefix.
 
 ### 1.6 `Env`
 
@@ -431,7 +473,21 @@ unchanged. That is the portability promise.
 
 Views import none of these.
 
-### 1.10 What the framework ignores
+### 1.10 The `scamp` key in `package.json`
+
+The framework's own settings, declarative so the app can read them:
+
+```json
+{ "scamp": { "adapter": "@scampjs/adapter-cloudflare" } }
+```
+
+| Key       | Meaning                                                                         |
+| --------- | ------------------------------------------------------------------------------- |
+| `adapter` | The deploy adapter package `scamp build` lays the build out with (section 2.6). |
+
+Absent, the build is the static folder of section 2.3.
+
+### 1.11 What the framework ignores
 
 `scamp.config.json`, `.scamp/`, `agent.md`, `CLAUDE.md`, and
 `design/DESIGN.md` belong to the app or to the user. The framework
@@ -540,11 +596,38 @@ Serves `dist/` as a static host would: a path resolves to
 `scamp preview ready http://127.0.0.1:<port>`, in the shape of
 section 2.1.
 
-### 2.5 Reserved
+### 2.5 `scamp add <recipe> [--dialect <d>] [--force]`
 
-| Command              | Arrives with                                                                     |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `scamp add <recipe>` | contract 2 (phase 6): apply a recipe from the templates export; `drizzle` first. |
+Applies a recipe from the templates export (section 3.2) to the project
+in the working directory: new files are written, `package.json`,
+`scamp-env.d.ts`, `.dev.vars`, `.gitignore`, and `agent.md` gain what
+the recipe adds and keep everything else. A recipe file that exists with
+other contents stops the command unless `--force`; applying a recipe
+twice changes nothing. Exit `0`, the files written and the commands to
+run next on stdout.
+
+### 2.6 Adapters and the server bundle
+
+When `package.json` names an adapter, `scamp build` still prerenders
+every route section 2.3 can, then bundles the server into one ES module
+whose default export is the Hono app — every page route and API route
+imported statically — and hands the adapter the static folder, the
+bundle, the route table, and the project name through `scampjs/adapter`:
+
+```ts
+type Adapter = {
+  name: string;
+  serverTarget: 'webworker' | 'node';
+  build: (ctx: AdapterBuildContext) => Promise<void>;
+};
+```
+
+With an adapter, `render = 'server'` routes and dynamic routes without
+`params()` render per request from the bundle instead of being refused.
+`env` in `load()` and API handlers is what the host hands the app's
+`fetch()`; each adapter documents it. `@scampjs/adapter-cloudflare`
+writes `dist/_worker.js` beside the static folder, and a `wrangler.jsonc`
+on the first build; `env` is the Worker's bindings.
 
 -------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `scamp build` | contract 1 (phase 4): prerender `static`, bundle `server`, SPA entry for `client`; islands from `_scamp.events`. |
@@ -573,6 +656,35 @@ the `_scamp` export with empty `events`. The project template writes
 `package.json` (with `scampjs` pinned to the version that wrote it),
 `tsconfig.json`, `scamp-env.d.ts`, `.gitignore`, an `agent.md` stub,
 `design/theme.css`, `routes/index.tsx`, and `views/Home/`.
+
+### 3.2 Recipes
+
+A recipe is new files plus additions to files a project has, applied by
+`applyRecipe(files, recipe)` from the templates export, which
+`scamp add` and `create-scampjs` both call:
+
+```ts
+type Recipe = {
+  name: string;
+  files: FileMap;                          // new files; a differing existing file is a conflict
+  dependencies: Record<string, string>;    // merged into package.json, existing entries kept
+  devDependencies: Record<string, string>;
+  scripts: Record<string, string>;
+  devVars: Record<string, string>;         // .dev.vars lines, keys the project sets kept
+  env: Record<string, string>;             // Env fields → scamp-env.d.ts augmentation
+  envReferences: string[];                 // /// <reference types="…" /> the fields need
+  gitignore: string[];
+  agentMd: string;                         // appended once, under a marker
+};
+```
+
+**`drizzle`**, the first recipe, takes a dialect — `sqlite`, `postgres`,
+or `d1` — and writes `db/schema.ts`, `lib/db.ts` exporting `db(env)`,
+`drizzle.config.ts`, the `db:generate`, `db:migrate`, and `db:studio`
+scripts, `DATABASE_URL` in `.dev.vars`, the `Env` fields, and the
+**Database** section of `agent.md`. The `d1` dialect's `db(env)` uses
+`env.DB` when the binding exists and a SQLite file otherwise, so the
+same project runs locally and on Cloudflare with no code change.
 
 ---
 
@@ -609,3 +721,11 @@ map so the app can read it.
 | `scamp-env.d.ts`                                   | The `Env` augmentation                                            |
 | `design/theme.css`                                 | Tokens and the `body` rules                                       |
 | `package.json`, `tsconfig.json`                    | Scripts, dependencies, the `@/` alias, the `react` mapping        |
+
+`packages/framework/fixtures/contract-2/` is the same project with what
+contract 2 adds:
+
+| File                                | Demonstrates                                 |
+| ----------------------------------- | -------------------------------------------- |
+| `routes/api/games/[token]/start.ts` | A plain `POST` handler with params and `env` |
+| `routes/api/health.ts`              | A default-exported Hono app and its sub-path |

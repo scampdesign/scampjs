@@ -1,0 +1,51 @@
+{
+  "name": "@scampjs/adapter-cloudflare",
+  "version": "0.1.0",
+  "description": "Deploy a Scamp framework project to Cloudflare Workers (with static assets) or Pages: scamp build writes dist/_worker.js and a wrangler.jsonc.",
+  "license": "MIT",
+  "author": "Angie Hemans",
+  "homepage": "https://github.com/scampdesign/scampjs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scampdesign/scampjs.git",
+    "directory": "packages/adapter-cloudflare"
+  },
+  "bugs": "https://github.com/scampdesign/scampjs/issues",
+  "keywords": [
+    "scamp",
+    "scampjs",
+    "cloudflare",
+    "workers",
+    "pages",
+    "adapter"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "peerDependencies": {
+    "scampjs": "^0.3.0"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/prepack.mjs LICENSE"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "miniflare": "^4.20260730.0"
+  }
+}

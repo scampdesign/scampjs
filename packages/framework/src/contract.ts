@@ -4,4 +4,4 @@
  * in the build or the dev server. Mirrors `scampjs.contract` in
  * package.json; a test keeps the two equal. See CONTRACT.md.
  */
-export const CONTRACT_VERSION = 1 as const;
+export const CONTRACT_VERSION = 2 as const;

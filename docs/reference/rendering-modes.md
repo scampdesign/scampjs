@@ -20,13 +20,16 @@ and the route hydrates from them.
 
 The build prerenders into `dist/`, a folder any static host serves.
 
-| Route                                           | Result                                          |
-| ----------------------------------------------- | ----------------------------------------------- |
-| `static`, no dynamic segments                   | One page, `load()` run at build time            |
-| `static`, dynamic segments, `params()` exported | One page per entry                              |
-| `static`, dynamic segments, no `params()`       | Refused: add `params()` or use a server adapter |
-| `client`                                        | As `static`, and the page hydrates              |
-| `server`                                        | Refused until a server adapter exists           |
+| Route                                           | Result                                           |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `static`, no dynamic segments                   | One page, `load()` run at build time             |
+| `static`, dynamic segments, `params()` exported | One page per entry                               |
+| `static`, dynamic segments, no `params()`       | Refused without an adapter; per request with one |
+| `client`                                        | As `static`, and the page hydrates               |
+| `server`                                        | Refused without an adapter; per request with one |
+
+With an [adapter](deploy-cloudflare.md), the routes a folder cannot
+serve render per request from the server bundle, and API routes run.
 
 `scamp preview` serves `dist/` as a static host would. `scamp dev`
 renders every route per request, with `client` routes hydrating in the

@@ -11,15 +11,15 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -p packages/framework/tsconfig.json --noEmit && tsc -p packages/create-scampjs/tsconfig.json --noEmit",
+    "build": "npm run build -w scampjs && npm run build -w @scampjs/adapter-cloudflare",
+    "typecheck": "tsc -p packages/framework/tsconfig.json --noEmit && tsc -p packages/create-scampjs/tsconfig.json --noEmit && tsc -p packages/adapter-cloudflare/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "pack:dry": "npm pack --dry-run --workspaces",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run build && npm test && npm run pack:dry",
+    "check": "npm run build && npm run lint && npm run format:check && npm run typecheck && npm test && npm run pack:dry",
     "pretest": "npm run build"
   },
   "devDependencies": {
