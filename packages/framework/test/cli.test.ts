@@ -117,13 +117,13 @@ describe('the scamp binary', () => {
     expect(result.stderr).toContain('scamp dev could not start');
   });
 
-  it('add says which release brings it and exits 1', () => {
-    const result = spawnSync(process.execPath, [bin, 'add', 'drizzle'], {
+  it('add refuses an unknown recipe and exits 1', () => {
+    const result = spawnSync(process.execPath, [bin, 'add', 'prisma'], {
       cwd: fixture,
       encoding: 'utf8',
     });
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('later scampjs release');
+    expect(result.stderr).toContain('Unknown recipe');
   });
 
   it("build refuses the fixture's lobby route, which needs a server, and says so", () => {

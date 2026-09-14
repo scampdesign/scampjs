@@ -7,13 +7,23 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { FileMap } from '../templates/index.js';
-import { applyRecipe, RecipeConflict } from '../templates/recipe.js';
+import { applyRecipe } from '../templates/recipe.js';
 import type { Recipe } from '../templates/recipe.js';
-import { DRIZZLE_DIALECTS, drizzleRecipe, isDrizzleDialect } from '../templates/recipes/drizzle.js';
+import {
+  DRIZZLE_DIALECTS,
+  drizzleRecipe,
+  isDrizzleDialect,
+} from '../templates/recipes/drizzle.js';
 
 export type AddOptions = { dialect?: string; force: boolean };
 
-const TOUCHED = ['package.json', 'scamp-env.d.ts', '.dev.vars', '.gitignore', 'agent.md'];
+const TOUCHED = [
+  'package.json',
+  'scamp-env.d.ts',
+  '.dev.vars',
+  '.gitignore',
+  'agent.md',
+];
 
 export const RECIPES = ['drizzle'] as const;
 
@@ -21,18 +31,28 @@ export const recipeFor = (name: string, opts: AddOptions): Recipe => {
   if (name === 'drizzle') {
     const dialect = opts.dialect ?? 'sqlite';
     if (!isDrizzleDialect(dialect)) {
-      throw new Error(`--dialect must be one of ${DRIZZLE_DIALECTS.join(', ')}, got "${dialect}".`);
+      throw new Error(
+        `--dialect must be one of ${DRIZZLE_DIALECTS.join(', ')}, got "${dialect}".`,
+      );
     }
     return drizzleRecipe(dialect);
   }
-  throw new Error(`Unknown recipe "${name}". Available: ${RECIPES.join(', ')}.`);
+  throw new Error(
+    `Unknown recipe "${name}". Available: ${RECIPES.join(', ')}.`,
+  );
 };
 
 export type AddResult = { written: string[]; next: string[] };
 
-export const runAdd = (root: string, name: string, opts: AddOptions): AddResult => {
+export const runAdd = (
+  root: string,
+  name: string,
+  opts: AddOptions,
+): AddResult => {
   if (!existsSync(join(root, 'package.json'))) {
-    throw new Error(`${root} has no package.json; run scamp add from the project root.`);
+    throw new Error(
+      `${root} has no package.json; run scamp add from the project root.`,
+    );
   }
   const recipe = recipeFor(name, opts);
   const current: FileMap = {};
@@ -40,13 +60,8 @@ export const runAdd = (root: string, name: string, opts: AddOptions): AddResult 
     const full = join(root, path);
     if (existsSync(full)) current[path] = readFileSync(full, 'utf8');
   }
-  let changes: FileMap;
-  try {
-    changes = applyRecipe(current, recipe, { force: opts.force });
-  } catch (err) {
-    if (err instanceof RecipeConflict) throw new Error(err.message);
-    throw err;
-  }
+  // A RecipeConflict's message already names the file and the fix.
+  const changes: FileMap = applyRecipe(current, recipe, { force: opts.force });
   for (const [path, content] of Object.entries(changes)) {
     const full = join(root, path);
     mkdirSync(dirname(full), { recursive: true });

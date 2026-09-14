@@ -8,7 +8,11 @@
 import type { Recipe } from '../recipe.js';
 
 export type DrizzleDialect = 'sqlite' | 'postgres' | 'd1';
-export const DRIZZLE_DIALECTS: ReadonlyArray<DrizzleDialect> = ['sqlite', 'postgres', 'd1'];
+export const DRIZZLE_DIALECTS: ReadonlyArray<DrizzleDialect> = [
+  'sqlite',
+  'postgres',
+  'd1',
+];
 
 export const isDrizzleDialect = (value: unknown): value is DrizzleDialect =>
   value === 'sqlite' || value === 'postgres' || value === 'd1';
@@ -84,7 +88,9 @@ export const db = (env: Env) =>
     : drizzleSqlite(createClient({ url: env.DATABASE_URL ?? 'file:./dev.db' }), { schema });
 `;
 
-const config = (dialect: DrizzleDialect): string => `import { readFileSync } from 'node:fs';
+const config = (
+  dialect: DrizzleDialect,
+): string => `import { readFileSync } from 'node:fs';
 import { defineConfig } from 'drizzle-kit';
 
 // drizzle-kit runs outside the framework, so it reads .dev.vars itself.
@@ -116,7 +122,11 @@ export default defineConfig({
 const agentMd = (dialect: DrizzleDialect): string => `## Database
 
 This project uses [Drizzle](https://orm.drizzle.team) on ${
-  dialect === 'postgres' ? 'Postgres' : dialect === 'd1' ? 'Cloudflare D1 (SQLite locally)' : 'SQLite'
+  dialect === 'postgres'
+    ? 'Postgres'
+    : dialect === 'd1'
+      ? 'Cloudflare D1 (SQLite locally)'
+      : 'SQLite'
 }.
 
 - \`db/schema.ts\` is the schema: tables as code. Edit it, then run

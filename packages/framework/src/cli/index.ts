@@ -78,11 +78,15 @@ export const main = async (argv: ReadonlyArray<string>): Promise<number> => {
     case 'add':
       try {
         const result = runAdd(process.cwd(), parsed.args.recipe, {
-          ...(parsed.args.dialect === undefined ? {} : { dialect: parsed.args.dialect }),
+          ...(parsed.args.dialect === undefined
+            ? {}
+            : { dialect: parsed.args.dialect }),
           force: parsed.args.force,
         });
         if (result.written.length === 0) {
-          process.stdout.write(`${parsed.args.recipe} is already applied; nothing to do.\n`);
+          process.stdout.write(
+            `${parsed.args.recipe} is already applied; nothing to do.\n`,
+          );
         } else {
           process.stdout.write(
             `Wrote ${result.written.join(', ')}.\n\nNext:\n${result.next.map((n) => `  ${n}`).join('\n')}\n`,
@@ -90,7 +94,9 @@ export const main = async (argv: ReadonlyArray<string>): Promise<number> => {
         }
         return 0;
       } catch (err) {
-        process.stderr.write(`scamp add failed: ${err instanceof Error ? err.message : String(err)}\n`);
+        process.stderr.write(
+          `scamp add failed: ${err instanceof Error ? err.message : String(err)}\n`,
+        );
         return 1;
       }
     case 'build':

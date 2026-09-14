@@ -37,19 +37,24 @@ export class RecipeConflict extends Error {
 const marker = (recipe: string): string => `<!-- scamp:recipe:${recipe} -->`;
 const envMarker = (recipe: string): string => `// scamp:recipe:${recipe}`;
 
-const mergeJson = (
-  existing: string | undefined,
-  recipe: Recipe,
-): string => {
+const mergeJson = (existing: string | undefined, recipe: Recipe): string => {
   let pkg: Record<string, unknown> = {};
   if (existing !== undefined) {
     const parsed: unknown = JSON.parse(existing);
-    if (typeof parsed === 'object' && parsed !== null) pkg = parsed as Record<string, unknown>;
+    if (typeof parsed === 'object' && parsed !== null)
+      pkg = parsed as Record<string, unknown>;
   }
-  const section = (key: string, add: Record<string, string>): Record<string, string> => {
-    const current = typeof pkg[key] === 'object' && pkg[key] !== null ? (pkg[key] as Record<string, string>) : {};
+  const section = (
+    key: string,
+    add: Record<string, string>,
+  ): Record<string, string> => {
+    const current =
+      typeof pkg[key] === 'object' && pkg[key] !== null
+        ? (pkg[key] as Record<string, string>)
+        : {};
     const out = { ...current };
-    for (const [name, value] of Object.entries(add)) if (!(name in out)) out[name] = value;
+    for (const [name, value] of Object.entries(add))
+      if (!(name in out)) out[name] = value;
     return out;
   };
   const merged: Record<string, unknown> = {
@@ -62,17 +67,28 @@ const mergeJson = (
   return `${JSON.stringify(merged, null, 2)}\n`;
 };
 
-const appendLines = (existing: string | undefined, lines: string[], header?: string): string => {
+const appendLines = (
+  existing: string | undefined,
+  lines: string[],
+  header?: string,
+): string => {
   const have = new Set((existing ?? '').split('\n').map((l) => l.trim()));
   const missing = lines.filter((l) => !have.has(l.trim()));
   if (missing.length === 0) return existing ?? '';
-  const base = existing === undefined || existing === '' ? '' : `${existing.replace(/\s*$/, '\n')}\n`;
+  const base =
+    existing === undefined || existing === ''
+      ? ''
+      : `${existing.replace(/\s*$/, '\n')}\n`;
   return `${base}${header === undefined ? '' : `${header}\n`}${missing.join('\n')}\n`;
 };
 
 const envBlock = (recipe: Recipe): string => {
-  const refs = recipe.envReferences.map((r) => `/// <reference types="${r}" />`);
-  const fields = Object.entries(recipe.env).map(([name, type]) => `    ${name}: ${type};`);
+  const refs = recipe.envReferences.map(
+    (r) => `/// <reference types="${r}" />`,
+  );
+  const fields = Object.entries(recipe.env).map(
+    ([name, type]) => `    ${name}: ${type};`,
+  );
   return `${envMarker(recipe.name)}
 ${refs.length > 0 ? `${refs.join('\n')}\n` : ''}declare module 'scampjs/runtime' {
   interface Env {
@@ -107,24 +123,42 @@ export const applyRecipe = (
   if (pkg !== files['package.json']) out['package.json'] = pkg;
 
   if (Object.keys(recipe.env).length > 0) {
-    const existing = files['scamp-env.d.ts'] ?? "declare module 'scampjs/runtime' {\n  interface Env {}\n}\n\nexport {};\n";
+    const existing =
+      files['scamp-env.d.ts'] ??
+      "declare module 'scampjs/runtime' {\n  interface Env {}\n}\n\nexport {};\n";
     if (!existing.includes(envMarker(recipe.name))) {
       const withoutExport = existing.replace(/\n*export \{\};\s*$/, '\n');
-      out['scamp-env.d.ts'] = `${withoutExport.replace(/\s*$/, '\n')}\n${envBlock(recipe)}\nexport {};\n`;
+      out['scamp-env.d.ts'] =
+        `${withoutExport.replace(/\s*$/, '\n')}\n${envBlock(recipe)}\nexport {};\n`;
     }
   }
+  // A key the project already sets keeps its value, whatever it is.
+  const haveKeys = new Set(
+    (files['.dev.vars'] ?? '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.includes('=') && !l.startsWith('#'))
+      .map((l) => l.slice(0, l.indexOf('=')).trim()),
+  );
   const devVars = appendLines(
     files['.dev.vars'],
-    Object.entries(recipe.devVars).map(([k, v]) => `${k}=${v}`),
+    Object.entries(recipe.devVars)
+      .filter(([k]) => !haveKeys.has(k))
+      .map(([k, v]) => `${k}=${v}`),
   );
   if (devVars !== (files['.dev.vars'] ?? '')) out['.dev.vars'] = devVars;
   if (recipe.gitignore.length > 0) {
-    const ignore = appendLines(files['.gitignore'], recipe.gitignore, `# ${recipe.name}`);
+    const ignore = appendLines(
+      files['.gitignore'],
+      recipe.gitignore,
+      `# ${recipe.name}`,
+    );
     if (ignore !== (files['.gitignore'] ?? '')) out['.gitignore'] = ignore;
   }
   const agent = files['agent.md'];
   if (agent !== undefined && !agent.includes(marker(recipe.name))) {
-    out['agent.md'] = `${agent.replace(/\s*$/, '\n')}\n${marker(recipe.name)}\n${recipe.agentMd.replace(/\s*$/, '\n')}`;
+    out['agent.md'] =
+      `${agent.replace(/\s*$/, '\n')}\n${marker(recipe.name)}\n${recipe.agentMd.replace(/\s*$/, '\n')}`;
   }
   return out;
 };

@@ -67,10 +67,43 @@ describe('create-scampjs', () => {
     expect(pkg.name).toBe('my-app');
   });
 
+  it('applies the Drizzle recipe for --db sqlite', () => {
+    cwd = mkdtempSync(join(tmpdir(), 'create-scampjs-'));
+    const result = run(['withdb', '--db', 'sqlite', '-y'], cwd);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('sqlite database through Drizzle');
+    expect(result.stdout).toContain('npm run db:migrate');
+    const dir = join(cwd, 'withdb');
+    for (const file of [
+      'db/schema.ts',
+      'lib/db.ts',
+      'drizzle.config.ts',
+      '.dev.vars',
+    ]) {
+      expect(existsSync(join(dir, file)), file).toBe(true);
+    }
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+      scripts: Record<string, string>;
+    };
+    expect(pkg.dependencies['drizzle-orm']).toBeDefined();
+    expect(pkg.dependencies['@libsql/client']).toBeDefined();
+    expect(pkg.devDependencies['drizzle-kit']).toBeDefined();
+    expect(pkg.scripts['db:migrate']).toBe('drizzle-kit migrate');
+    expect(readFileSync(join(dir, 'scamp-env.d.ts'), 'utf8')).toContain(
+      'DATABASE_URL: string | undefined;',
+    );
+    expect(readFileSync(join(dir, 'agent.md'), 'utf8')).toContain(
+      '## Database',
+    );
+    expect(readFileSync(join(dir, '.gitignore'), 'utf8')).toContain('dev.db');
+  });
+
   it('refuses an unknown database, a bad name, and a non-empty folder', () => {
     cwd = mkdtempSync(join(tmpdir(), 'create-scampjs-'));
-    expect(run(['x', '--db', 'drizzle', '-y'], cwd).stderr).toContain(
-      'not available yet',
+    expect(run(['x', '--db', 'mongo', '-y'], cwd).stderr).toContain(
+      'not one of',
     );
     expect(run(['x', '--name', 'Bad Name', '-y'], cwd).stderr).toContain(
       'not a valid package name',

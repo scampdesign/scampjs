@@ -1,8 +1,12 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDevServer, type DevServer } from '../src/dev/server.js';
-import { projectTemplate } from '../src/templates/index.js';
+import {
+  applyRecipe,
+  drizzleRecipe,
+  projectTemplate,
+} from '../src/templates/index.js';
 
 // The fixture is the first project scamp dev has to run. The scaffolded
 // project under test/.tmp proves the templates and that load() reads
@@ -209,5 +213,95 @@ describe('scamp dev on a scaffolded project', () => {
     }
     expect(res.status).toBe(500);
     expect(res.text).toContain('kaboom');
+  });
+});
+
+describe('scamp dev with the Drizzle recipe on SQLite', () => {
+  // The recipe's own lib/db.ts against a file database, through a
+  // route's load() and an API POST: what "runs locally on SQLite with
+  // no code change" means. The table is created by the route so the
+  // test needs no drizzle-kit run.
+  const dbTmp = resolve(import.meta.dirname, '.tmp', 'sqlite-recipe');
+  let server: DevServer;
+  beforeAll(async () => {
+    rmSync(dbTmp, { recursive: true, force: true });
+    const base = projectTemplate({ name: 'sqlite-recipe' });
+    const files = { ...base, ...applyRecipe(base, drizzleRecipe('sqlite')) };
+    for (const [file, content] of Object.entries(files)) {
+      mkdirSync(dirname(join(dbTmp, file)), { recursive: true });
+      writeFileSync(join(dbTmp, file), content);
+    }
+    writeFileSync(
+      join(dbTmp, 'routes', 'items.tsx'),
+      [
+        "import { sql } from 'drizzle-orm';",
+        "import type { LoadContext, RouteProps } from 'scampjs/runtime';",
+        "import { db } from '@/lib/db';",
+        "import { items } from '@/db/schema';",
+        '',
+        "export const render = 'server';",
+        '',
+        'export async function load({ env }: LoadContext) {',
+        '  const d = db(env);',
+        '  await d.run(sql`CREATE TABLE IF NOT EXISTS items (id integer primary key autoincrement, title text not null, created_at integer not null)`);',
+        "  await d.insert(items).values({ title: 'first' });",
+        '  const rows = await d.select().from(items);',
+        '  return { count: rows.length, first: rows[0]?.title ?? null };',
+        '}',
+        '',
+        'export default function Items({ data }: RouteProps<typeof load>) {',
+        '  return <p>{data.count} items, first is {data.first}</p>;',
+        '}',
+        '',
+      ].join('\n'),
+    );
+    mkdirSync(join(dbTmp, 'routes', 'api'), { recursive: true });
+    writeFileSync(
+      join(dbTmp, 'routes', 'api', 'items.ts'),
+      [
+        "import type { ApiHandler } from 'scampjs/runtime';",
+        "import { db } from '@/lib/db';",
+        "import { items } from '@/db/schema';",
+        '',
+        'export const POST: ApiHandler = async ({ request, env }) => {',
+        '  const title = await request.text();',
+        '  const [row] = await db(env).insert(items).values({ title }).returning();',
+        '  return Response.json({ id: row?.id ?? null, title: row?.title ?? null });',
+        '};',
+        '',
+      ].join('\n'),
+    );
+    // libsql resolves a relative file URL against the process, not the
+    // project; scamp dev runs from the project root, this test does not.
+    writeFileSync(
+      join(dbTmp, '.dev.vars'),
+      `DATABASE_URL=file:${join(dbTmp, 'dev.db')}\n`,
+    );
+    server = await createDevServer({
+      root: dbTmp,
+      stdout: quiet,
+      stderr: quiet,
+    });
+  }, 60_000);
+  afterAll(async () => {
+    await server.close();
+    rmSync(dbTmp, { recursive: true, force: true });
+  });
+
+  it('load() reads through db(env) with DATABASE_URL from .dev.vars', async () => {
+    const res = await get(server, '/items');
+    expect(res.status, res.text).toBe(200);
+    expect(res.text).toContain('1 items, first is first');
+    expect(existsSync(join(dbTmp, 'dev.db'))).toBe(true);
+  });
+
+  it('an API POST writes through the same client', async () => {
+    const res = await fetch(`${server.url}/api/items`, {
+      method: 'POST',
+      body: 'second',
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ title: 'second' });
+    expect((await get(server, '/items')).text).toContain('3 items');
   });
 });

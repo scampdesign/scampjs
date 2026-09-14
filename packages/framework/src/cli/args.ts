@@ -6,7 +6,10 @@ export type ParsedArgs =
   | { command: 'dev'; args: DevArgs }
   | { command: 'build' }
   | { command: 'preview'; args: { port: number } }
-  | { command: 'add'; args: { recipe: string; dialect?: string; force: boolean } }
+  | {
+      command: 'add';
+      args: { recipe: string; dialect?: string; force: boolean };
+    }
   | { command: 'version' }
   | { command: 'help' }
   | { command: 'error'; message: string };
@@ -68,7 +71,10 @@ const parsePort = (
 const parseAdd = (argv: ReadonlyArray<string>): ParsedArgs => {
   const [recipe, ...rest] = argv;
   if (recipe === undefined || recipe.startsWith('-')) {
-    return { command: 'error', message: 'scamp add needs a recipe name, e.g. scamp add drizzle.' };
+    return {
+      command: 'error',
+      message: 'scamp add needs a recipe name, e.g. scamp add drizzle.',
+    };
   }
   let dialect: string | undefined;
   let force = false;
@@ -78,10 +84,18 @@ const parseAdd = (argv: ReadonlyArray<string>): ParsedArgs => {
     else if (arg === '--dialect') {
       dialect = rest[i + 1];
       i += 1;
-    } else if (arg.startsWith('--dialect=')) dialect = arg.slice('--dialect='.length);
-    else return { command: 'error', message: `Unknown option for scamp add: ${arg}` };
+    } else if (arg.startsWith('--dialect='))
+      dialect = arg.slice('--dialect='.length);
+    else
+      return {
+        command: 'error',
+        message: `Unknown option for scamp add: ${arg}`,
+      };
   }
-  return { command: 'add', args: { recipe, ...(dialect === undefined ? {} : { dialect }), force } };
+  return {
+    command: 'add',
+    args: { recipe, ...(dialect === undefined ? {} : { dialect }), force },
+  };
 };
 
 const parseDev = (argv: ReadonlyArray<string>): ParsedArgs => {

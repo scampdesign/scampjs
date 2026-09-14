@@ -41,8 +41,15 @@ describe('parseArgs', () => {
     expect(parseArgs(['preview', '--json']).command).toBe('error');
     expect(parseArgs(['add', 'drizzle'])).toEqual({
       command: 'add',
-      args: ['drizzle'],
+      args: { recipe: 'drizzle', force: false },
     });
+    expect(parseArgs(['add', 'drizzle', '--dialect', 'd1', '--force'])).toEqual(
+      {
+        command: 'add',
+        args: { recipe: 'drizzle', dialect: 'd1', force: true },
+      },
+    );
+    expect(parseArgs(['add']).command).toBe('error');
     expect(parseArgs([])).toEqual({ command: 'help' });
     expect(parseArgs(['--version'])).toEqual({ command: 'version' });
     expect(parseArgs(['frobnicate']).command).toBe('error');

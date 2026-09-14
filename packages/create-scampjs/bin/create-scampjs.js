@@ -6,17 +6,17 @@
 import { mkdirSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { projectTemplate } from 'scampjs/templates';
+import { applyRecipe, drizzleRecipe, projectTemplate } from 'scampjs/templates';
 
 const USAGE = `Usage: npm create scampjs [dir] [--name <name>] [--db none] [--yes]
 
   dir        folder to create (default: the project name)
   --name     package name (default: the folder's name, or my-scamp-app)
-  --db       database recipe; only "none" exists yet
+  --db       database: none, sqlite, postgres, or d1 (Drizzle)
   --yes, -y  take the defaults without asking
 `;
 
-const DATABASES = ['none'];
+const DATABASES = ['none', 'sqlite', 'postgres', 'd1'];
 const NAME_RE = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/;
 
 const parse = (argv) => {
@@ -77,7 +77,7 @@ const main = async () => {
   if (!DATABASES.includes(db)) {
     rl?.close();
     process.stderr.write(
-      `Database "${db}" is not available yet; only ${DATABASES.join(', ')} for now. Drizzle arrives with a later release.\n`,
+      `Database "${db}" is not one of ${DATABASES.join(', ')}.\n`,
     );
     return 1;
   }
@@ -88,15 +88,22 @@ const main = async () => {
     process.stderr.write(`${dir} exists and is not empty.\n`);
     return 1;
   }
-  const files = projectTemplate({ name });
+  const base = projectTemplate({ name });
+  // The recipe merges into the files the template wrote, exactly as
+  // `scamp add drizzle` would on an existing project.
+  const files =
+    db === 'none' ? base : { ...base, ...applyRecipe(base, drizzleRecipe(db)) };
   for (const [relative, content] of Object.entries(files)) {
     const target = join(dir, relative);
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, content, 'utf8');
   }
   const cdPart = dir === process.cwd() ? '' : `  cd ${args.dir ?? name}\n`;
+  const dbPart =
+    db === 'none' ? '' : '  npm run db:generate\n  npm run db:migrate\n';
+  const dbNote = db === 'none' ? '' : ` and a ${db} database through Drizzle`;
   process.stdout.write(
-    `Created ${name} in ${dir} with ${Object.keys(files).length} files.\n\nNext:\n${cdPart}  npm install\n  npm run dev\n\nOpen the folder in the Scamp app to design its views.\n`,
+    `Created ${name} in ${dir} with ${Object.keys(files).length} files${dbNote}.\n\nNext:\n${cdPart}  npm install\n${dbPart}  npm run dev\n\nOpen the folder in the Scamp app to design its views.\n`,
   );
   return 0;
 };

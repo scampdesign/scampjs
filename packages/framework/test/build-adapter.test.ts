@@ -231,7 +231,9 @@ describe('scamp build without an adapter', () => {
         (e: unknown) => e,
       );
       expect(failure).toBeInstanceOf(BuildError);
-      expect(failure instanceof Error ? failure.message : '').toContain('"adapter"');
+      expect(failure instanceof Error ? failure.message : '').toContain(
+        '"adapter"',
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
