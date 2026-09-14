@@ -7,7 +7,7 @@
  * See CONTRACT.md, section 3.
  */
 import { readFileSync } from 'node:fs';
-import { CONTRACT_VERSION } from '../index.js';
+import { CONTRACT_VERSION } from '../contract.js';
 import { DEFAULT_THEME_CSS } from './themeCss.js';
 
 /** Relative POSIX path from the project root → file contents. */
@@ -17,6 +17,12 @@ export type FileMap = Record<string, string>;
 export type ProjectTemplateOptions = {
   /** The project name, used for package.json and the document title. */
   name: string;
+  /**
+   * The `scampjs` version range to pin in package.json. Defaults to a
+   * caret range on this package's own version; a tool that bundles the
+   * templates (the Scamp app) passes the version it was built against.
+   */
+  scampjsVersion?: string;
 };
 
 /** Scaffolds a whole project: views/, routes/index.tsx, design/, package.json. */
@@ -88,7 +94,7 @@ export const scampjsVersion = (): string => {
   return pkg.version;
 };
 
-const packageJson = (name: string): string =>
+const packageJson = (name: string, scampjs: string): string =>
   `${JSON.stringify(
     {
       name,
@@ -99,7 +105,7 @@ const packageJson = (name: string): string =>
         build: 'scamp build',
         preview: 'scamp preview',
       },
-      dependencies: { preact: '^10.29.0', scampjs: `^${scampjsVersion()}` },
+      dependencies: { preact: '^10.29.0', scampjs },
     },
     null,
     2,
@@ -180,8 +186,11 @@ Open the folder in the Scamp app for the full agent instructions. The
 file shapes are in \`node_modules/scampjs/CONTRACT.md\`.
 `;
 
-export const projectTemplate: ProjectTemplate = ({ name }) => ({
-  'package.json': packageJson(name),
+export const projectTemplate: ProjectTemplate = ({
+  name,
+  scampjsVersion: pinned,
+}) => ({
+  'package.json': packageJson(name, pinned ?? `^${scampjsVersion()}`),
   'tsconfig.json': TSCONFIG,
   'scamp-env.d.ts': SCAMP_ENV,
   '.gitignore': GITIGNORE,

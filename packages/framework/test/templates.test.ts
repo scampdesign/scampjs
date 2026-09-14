@@ -84,6 +84,15 @@ describe('projectTemplate', () => {
     });
   });
 
+  it('pins the scampjs range a caller passes, for tools that bundle the templates', () => {
+    const pkg = JSON.parse(
+      projectTemplate({ name: 'x', scampjsVersion: '^9.9.9' })[
+        'package.json'
+      ] ?? '',
+    ) as { dependencies: Record<string, string> };
+    expect(pkg.dependencies['scampjs']).toBe('^9.9.9');
+  });
+
   it('maps @/ to the root and react to preact/compat in tsconfig', () => {
     const tsconfig = JSON.parse(files['tsconfig.json'] ?? '') as {
       compilerOptions: {

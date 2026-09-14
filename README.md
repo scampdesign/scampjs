@@ -26,8 +26,8 @@ files, and `docs/plans/` for the phases.
 
 | Package                                     | What                                                                                                | Version |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
-| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scamp build`, `scamp preview`, `scampjs/runtime`, `scampjs/templates`. | 0.2.0   |
-| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`: scaffolds a project from the framework's templates.                           | 0.1.0   |
+| [`scampjs`](packages/framework)             | The framework: `scamp dev`, `scamp build`, `scamp preview`, `scampjs/runtime`, `scampjs/templates`. | 0.2.1   |
+| [`create-scampjs`](packages/create-scampjs) | `npm create scampjs`: scaffolds a project from the framework's templates.                           | 0.1.1   |
 | `@scampjs/adapter-*`                        | Deploy adapters, one package each, from phase 6.                                                    | —       |
 
 ## The contract

@@ -9,7 +9,7 @@ import { h } from 'preact';
 import type { ComponentType } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import type { ModuleNode, ViteDevServer } from 'vite';
-import { CONTRACT_VERSION } from '../index.js';
+import { CONTRACT_VERSION } from '../contract.js';
 import type { Env, LoadContext, Params, RenderMode } from '../runtime/index.js';
 import { withParams } from '../runtime/params.js';
 import { documentShell } from './shell.js';
