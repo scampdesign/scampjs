@@ -49,7 +49,9 @@ jobs:
             exit 1
           fi
 
-      - run: npm run build -w "${{ steps.tag.outputs.package }}" --if-present
+      # The root build script orders the workspaces: the adapter's types
+      # come from the framework's dist.
+      - run: npm run build
       - run: npm test
 
       # Publish from inside the package directory rather than with -w, which
