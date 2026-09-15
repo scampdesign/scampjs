@@ -1,7 +1,8 @@
 name: Release
 
 # A tag names exactly one package: `scampjs@0.1.0`, `create-scampjs@0.1.0`,
-# `@scampjs/adapter-cloudflare@0.1.0`. The job checks the tag's version
+# `@scampjs/adapter-cloudflare@0.1.0`. The pattern is `**@*` because a
+# scoped name has a slash, which a single `*` does not match. The job checks the tag's version
 # against the workspace's package.json, builds, and publishes that one
 # workspace.
 #
@@ -12,7 +13,7 @@ name: Release
 on:
   push:
     tags:
-      - '*@*'
+      - '**@*'
 
 permissions:
   contents: read
