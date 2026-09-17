@@ -19,9 +19,12 @@ routes with `load()`, its API handlers under `routes/api/`, and every
 view at `/_views/<Name>`; `scamp build` prerenders what a folder can
 serve and, with an adapter, bundles a server for the rest;
 `@scampjs/adapter-cloudflare` deploys it to Workers or Pages with D1 as
-`env.DB`. See `docs/reference/` for routing, `load()`, rendering modes,
-API routes, the database, and deployment, and `docs/plans/` for the
-phases.
+`env.DB`.
+
+New here? [Getting started](docs/guide/getting-started.md) walks through
+a project end to end, and [With the Scamp app](docs/guide/with-the-scamp-app.md)
+covers what changes when you design in Scamp. [`docs/`](docs/README.md)
+indexes the rest.
 
 ## Packages
 
