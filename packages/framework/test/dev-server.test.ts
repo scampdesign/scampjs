@@ -92,6 +92,17 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect(res.text).not.toContain('virtual:scamp-entry');
   });
 
+  it('renders React-style SVG attributes as SVG names, on the route and the view preview', async () => {
+    // Core Preact wrote `strokeWidth="2"`, which the browser ignores, so
+    // icons drew a 1px stroke. see docs/notes/svg-attribute-names.md
+    for (const path of ['/', '/_views/Home']) {
+      const res = await get(server, path);
+      expect(res.text).toContain('stroke-width="2"');
+      expect(res.text).toContain('stroke-linecap="round"');
+      expect(res.text).not.toContain('strokeWidth');
+    }
+  });
+
   it('GET /game/KZQ4/lobby runs load() with params and hydrates a client route', async () => {
     const res = await get(server, '/game/KZQ4/lobby');
     expect(res.status).toBe(200);
@@ -108,6 +119,8 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect(js.status).toBe(200);
     expect(js.text).toContain('hydrate');
     expect(js.text).toContain('/routes/game/[token]/lobby.tsx');
+    // So a re-render keeps the SVG names the server wrote.
+    expect(js.text).toMatch(/preact_compat|preact\/compat/);
   });
 
   it('serves a view module to the browser through Vite, with the @/ alias resolved', async () => {

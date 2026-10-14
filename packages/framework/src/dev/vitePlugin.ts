@@ -42,7 +42,10 @@ const entryCode = (
   if (mode === 'css') {
     return `${head}import Route from ${JSON.stringify(routeUrl)};\nexport default Route;\n`;
   }
-  return `${head}import { h, hydrate } from 'preact';
+  // `preact/compat` first, as on the server: without it the first
+  // re-render writes `strokeWidth` back. see docs/notes/svg-attribute-names.md
+  return `${head}import 'preact/compat';
+import { h, hydrate } from 'preact';
 import Route from ${JSON.stringify(routeUrl)};
 const payload = JSON.parse(document.getElementById('scamp-data').textContent);
 globalThis[Symbol.for('scampjs.params')] = payload.params;

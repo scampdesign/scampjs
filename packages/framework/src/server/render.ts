@@ -6,6 +6,9 @@
  */
 import { h } from 'preact';
 import type { ComponentType } from 'preact';
+// For its vnode hook: React-style SVG names (`strokeWidth`) render as SVG
+// ones (`stroke-width`). see docs/notes/svg-attribute-names.md
+import 'preact/compat';
 import { renderToString } from 'preact-render-to-string';
 import { documentShell } from '../dev/shell.js';
 import type { Env, LoadContext, Params, RenderMode } from '../runtime/index.js';

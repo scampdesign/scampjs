@@ -157,7 +157,10 @@ The rules the file follows, in order of appearance:
    ``className={`${styles.root} ${className ?? ''}`}``.
 5. **Every element** carries `data-scamp-id="<id>"` and
    `className={styles.<id>}` with the same id. Attributes are
-   double-quoted. Component instances carry
+   double-quoted. SVG attributes use their React names — `strokeWidth`,
+   `strokeLinecap`, `fillRule` — and the framework renders them as their
+   SVG names (`stroke-width`, …), on the server and after hydration.
+   Component instances carry
    `data-scamp-instance-id="<id>"` and no `className`.
 6. **The `_scamp` export** is the last statement (section 1.4).
 
@@ -167,7 +170,8 @@ regenerates only what is inside it. The framework never depends on
 more than what is written here.
 
 A view with no bindings still has the props type, the `className`
-passthrough, and the `_scamp` export:
+passthrough, and the `_scamp` export. Its icon writes SVG attributes the
+React way:
 
 <!-- fixture: views/Home/Home.tsx -->
 
@@ -182,6 +186,7 @@ export default function Home({ className }: HomeProps) {
   return (
     <div data-scamp-id="root" className={`${styles.root} ${className ?? ''}`}>
       <h1 data-scamp-id="title_a1b1" className={styles.title_a1b1}>Noise With Friends</h1>
+      <svg data-scamp-id="icon_a1b3" className={styles.icon_a1b3} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3v18M3 12h18" /></svg>
       <p data-scamp-id="lede_a1b2" className={styles.lede_a1b2}>A party game for four people and one phone each.</p>
     </div>
   );
@@ -712,7 +717,7 @@ map so the app can read it.
 | File                                               | Demonstrates                                                      |
 | -------------------------------------------------- | ----------------------------------------------------------------- |
 | `views/Lobby/Lobby.tsx` + `.module.css`            | Every binding kind; instances; a slot child; `_scamp` with events |
-| `views/Home/Home.tsx` + `.module.css`              | A view with no bindings                                           |
+| `views/Home/Home.tsx` + `.module.css`              | A view with no bindings; an icon with React-style SVG attributes  |
 | `components/LinkCard/LinkCard.tsx` + `.module.css` | Attribute binding on a component; a default slot                  |
 | `components/RoundTag/RoundTag.tsx` + `.module.css` | The smallest component                                            |
 | `routes/index.tsx`                                 | A static route with no `load()`                                   |
