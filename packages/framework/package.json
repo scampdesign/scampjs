@@ -1,6 +1,6 @@
 {
   "name": "scampjs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The Scamp framework: structure, styles, and logic in separate files, on Vite, Preact, and Hono. scamp dev, scamp build with adapters, API routes, scamp add drizzle, and the templates export.",
   "license": "MIT",
   "author": "Angie Hemans",
