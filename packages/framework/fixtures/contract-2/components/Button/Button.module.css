@@ -1,0 +1,54 @@
+.root {
+  width: fit-content;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.root:hover {
+  opacity: 0.9;
+}
+
+.label_c1a1 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.root[data-variant="outline"] {
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.root[data-variant="outline"]:hover {
+  background: var(--color-surface);
+}
+
+.root[data-variant="secondary"] {
+  background: var(--color-surface);
+  border-color: var(--color-surface);
+  color: var(--color-fg);
+}
+
+.root[data-size="small"] {
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.root[data-size="small"] .label_c1a1 {
+  font-size: 0.75rem;
+}
+
+.root[data-size="large"] {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.root[data-size="large"] .label_c1a1 {
+  font-size: 1rem;
+}

@@ -222,7 +222,7 @@ route file and passed as a string or a boolean.
 | Kind      | App model field              | Emitted form                                                            | Inferred prop type                                                                                      |
 | --------- | ---------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Text      | `prop`                       | `{name}`; inside a repeat `{row.field}`                                 | `string`                                                                                                |
-| Attribute | `bind[attr] = prop`          | `attr={name}`; a boolean attribute inverted is `attr={!name}`           | `string`, or `boolean` for boolean attributes                                                           |
+| Attribute | `bind[attr] = prop`          | `attr={name}`; a boolean attribute inverted is `attr={!name}`           | `string`, `boolean` for boolean attributes, or a union of string literals for a variant axis (1.3.1)    |
 | Event     | `on[event] = prop`           | `onX={name}`; inside a repeat `onX={() => name?.(row.key)}`             | `() => void`, or `(key: string) => void` inside a repeat                                                |
 | Repeat    | `repeat = { over, as, key }` | `{list.map((row) => (…))}` with `key={row.key}` on the repeated element | `Array<{ … }>` from the sample rows; a field is `number` when every sample parses as one, else `string` |
 | Show      | `showIf = prop`              | `{flag && (…)}`                                                         | `boolean`                                                                                               |
@@ -272,6 +272,87 @@ Rules:
   parsed back as the same. No other operator appears in a view.
 - Sample values are the defaults. Boolean samples flip the show and
   attribute bindings on the canvas; array samples become the rows.
+
+### 1.3.1 Variant axes
+
+A component can have named looks or states, such as a button's
+`outline` style or a modal's `open` state. Each set of names is an
+**axis**. An axis is an attribute binding (section 1.3) with three
+extra rules. They are additions to contract 2, so they need no bump.
+
+- **The binding is a `data-` attribute on the root,** named for the
+  prop: `data-variant={variant}`, `data-size={size}`.
+- **The prop is a union of string literals,** double-quoted, in the
+  order the app lists them, and its default is one member. The
+  default's look is the base rules; it has no rules of its own.
+- **Each value's styles key on the root's attribute:**
+  - `.root[data-<axis>="<value>"]` for the root
+  - `.root[data-<axis>="<value>"] .<id>` for another element
+  - an element state (`:hover`, `:active`, `:focus`) follows its
+    element's selector
+
+  These rules come after every element's own rules, grouped by axis
+  in the order the props type declares them, then by value in the
+  union's order.
+
+<!-- fixture(contract-2): components/Button/Button.tsx -->
+
+```tsx
+type ButtonProps = {
+  variant?: "default" | "outline" | "secondary";
+  size?: "small" | "medium" | "large";
+  label?: string;
+  onClick?: () => void;
+  className?: string;
+};
+
+export default function Button({ variant = "default", size = "medium", label = "Save", onClick, className }: ButtonProps) {
+  return (
+    <button data-scamp-id="root" className={`${styles.root} ${className ?? ''}`} type="button" data-variant={variant} data-size={size} onClick={onClick}>
+```
+
+<!-- fixture(contract-2): components/Button/Button.module.css -->
+
+```css
+.root[data-variant="outline"] {
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.root[data-variant="outline"]:hover {
+  background: var(--color-surface);
+}
+```
+
+<!-- fixture(contract-2): components/Button/Button.module.css -->
+
+```css
+.root[data-size="small"] .label_c1a1 {
+  font-size: 0.75rem;
+}
+```
+
+A page or route picks a value with a string, like any attribute
+prop:
+
+```tsx
+<Button data-scamp-instance-id="inst_c3d4" variant="outline" label="Cancel" />
+```
+
+A state that changes at runtime, like an open modal, is an axis too,
+named `state` by convention. The route keeps the value and passes it
+in, with an event prop to change it:
+
+```tsx
+const [open, setOpen] = useState(false);
+// …
+<Modal state={open ? "open" : "closed"} onClose={() => setOpen(false)} />
+```
+
+The framework doesn't check that a value is one of the union's
+members; an unknown value matches no rule and shows the default's
+look. A rule that combines two axes in one selector is outside this
+grammar. The app keeps it verbatim (section 1.2).
 
 ### 1.4 View metadata
 
@@ -730,7 +811,8 @@ map so the app can read it.
 `packages/framework/fixtures/contract-2/` is the same project with what
 contract 2 adds:
 
-| File                                | Demonstrates                                 |
-| ----------------------------------- | -------------------------------------------- |
-| `routes/api/games/[token]/start.ts` | A plain `POST` handler with params and `env` |
-| `routes/api/health.ts`              | A default-exported Hono app and its sub-path |
+| File                                           | Demonstrates                                                      |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| `routes/api/games/[token]/start.ts`            | A plain `POST` handler with params and `env`                      |
+| `routes/api/health.ts`                         | A default-exported Hono app and its sub-path                      |
+| `components/Button/Button.tsx` + `.module.css` | Variant axes: `variant` and `size`, with a state inside a variant |
