@@ -89,14 +89,20 @@ export const shipsJavaScript = (
   eventViews: ReadonlyArray<string>,
 ): boolean => mode === 'client' || eventViews.length > 0;
 
-const META_RE =
-  /export\s+const\s+_scamp\s*=\s*\{\s*contract\s*:\s*(\d+)\s*,\s*events\s*:\s*\[([^\]]*)\]\s*\}\s*as\s+const\s*;/;
+/**
+ * The `_scamp` export, read by its fields rather than its exact shape:
+ * CONTRACT.md §1.4 lets fields be added without a bump, and a stricter
+ * match read a file with any extra field as having no events, which
+ * shipped its route without JavaScript.
+ */
+const META_RE = /export\s+const\s+_scamp\s*=\s*\{([\s\S]*?)\}\s*as\s+const\s*;/;
+const EVENTS_RE = /\bevents\s*:\s*\[([^\]]*)\]/;
 
 /** The `_scamp.events` a view or component file declares, or null without the export. */
 export const eventsDeclaredIn = (source: string): string[] | null => {
-  const match = META_RE.exec(source);
-  if (!match) return null;
-  return (match[2] ?? '')
+  const meta = META_RE.exec(source);
+  if (!meta) return null;
+  return (EVENTS_RE.exec(meta[1] ?? '')?.[1] ?? '')
     .split(',')
     .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
     .filter((s) => s.length > 0);

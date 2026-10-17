@@ -108,6 +108,31 @@ describe('eventsDeclaredIn', () => {
     ).toEqual([]);
   });
 
+  it('reads events when the export has fields the contract added later', () => {
+    // CONTRACT.md §1.4: fields may be added without a bump.
+    expect(
+      eventsDeclaredIn(
+        "export const _scamp = { contract: 2, events: ['onClick'], axes: ['variant', 'size'] } as const;\n",
+      ),
+    ).toEqual(['onClick']);
+    expect(
+      eventsDeclaredIn(
+        "export const _scamp = { contract: 2, note: 'x', events: ['onOpen', 'onClose'] } as const;",
+      ),
+    ).toEqual(['onOpen', 'onClose']);
+    expect(
+      eventsDeclaredIn(
+        "export const _scamp = {\n  contract: 2,\n  events: ['onClose'],\n} as const;",
+      ),
+    ).toEqual(['onClose']);
+  });
+
+  it('reads no events from an export without the field', () => {
+    expect(
+      eventsDeclaredIn('export const _scamp = { contract: 2 } as const;'),
+    ).toEqual([]);
+  });
+
   it('is null for a file without the export', () => {
     expect(
       eventsDeclaredIn('export default function X() { return null; }'),
