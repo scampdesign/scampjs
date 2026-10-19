@@ -295,6 +295,15 @@ extra rules. They are additions to contract 2, so they need no bump.
   in the order the props type declares them, then by value in the
   union's order.
 
+- **A combination of values** styles a look only when several values
+  are picked together, such as an outline button that's also small.
+  The root carries one attribute per axis, in the order the props type
+  declares the axes, and none of them is a default:
+  `.root[data-variant="outline"][data-size="small"]`. Combination rules
+  come after every single value's rules: pairs first, then three axes,
+  and so on, each by axis order and then value order. A combination
+  outranks the values it combines.
+
 <!-- fixture(contract-2): components/Button/Button.tsx -->
 
 ```tsx
@@ -332,6 +341,14 @@ export default function Button({ variant = "default", size = "medium", label = "
 }
 ```
 
+<!-- fixture(contract-2): components/Button/Button.module.css -->
+
+```css
+.root[data-variant="outline"][data-size="small"] {
+  border-width: 2px;
+}
+```
+
 A page or route picks a value with a string, like any attribute
 prop:
 
@@ -351,8 +368,9 @@ const [open, setOpen] = useState(false);
 
 The framework doesn't check that a value is one of the union's
 members; an unknown value matches no rule and shows the default's
-look. A rule that combines two axes in one selector is outside this
-grammar. The app keeps it verbatim (section 1.2).
+look. A rule whose attributes aren't in axis order, or that names a
+default value, is outside this grammar. The app keeps it verbatim
+(section 1.2).
 
 ### 1.4 View metadata
 

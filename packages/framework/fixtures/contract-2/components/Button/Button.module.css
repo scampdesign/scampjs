@@ -52,3 +52,7 @@
 .root[data-size="large"] .label_c1a1 {
   font-size: 1rem;
 }
+
+.root[data-variant="outline"][data-size="small"] {
+  border-width: 2px;
+}
