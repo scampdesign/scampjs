@@ -372,6 +372,61 @@ look. A rule whose attributes aren't in axis order, or that names a
 default value, is outside this grammar. The app keeps it verbatim
 (section 1.2).
 
+### 1.3.2 Variant interactions
+
+A component can change its own variant value in response to the
+pointer or the keyboard, such as a button that shows its `hover` look
+while hovered, or a menu that opens on a click. Each interaction moves
+one axis from one value (or any value) to another. They are additions
+to contract 2, so they need no bump.
+
+**Hover, press, and focus are CSS.** Each rule for the value changed to
+gains a second selector: the root with the value changed from, and the
+trigger's pseudo-class on the root. The rest of the selector is the
+same:
+
+```css
+.root[data-state="hover"] .label_c1a1,
+.root[data-state="default"]:hover .label_c1a1 {
+  color: var(--color-accent);
+}
+```
+
+| Trigger | Pseudo-class on the root |
+| ------- | ------------------------ |
+| hover   | `:hover`                 |
+| press   | `:active`                |
+| focus   | `:focus-visible`         |
+
+A `from` of any value drops the axis's attribute from the second
+selector (`.root:hover .label_c1a1`). Press and hover both match while
+the pointer is pressed; the rule written later wins, so a pressed value
+comes after a hover value in the union.
+
+**Click, a click outside, and Escape need the browser to remember the
+value,** so they are literal attributes the framework's handler reads:
+
+| Attribute            | On                  | Fires                             |
+| -------------------- | ------------------- | --------------------------------- |
+| `data-scamp-click`   | the element clicked | a click on it or inside it        |
+| `data-scamp-outside` | the root            | a click anywhere outside the root |
+| `data-scamp-escape`  | the root            | the Escape key                    |
+
+The value is one group per axis, separated by spaces:
+`<axis>:<from>=<to>,<from>=<to>`, with `*` for any value.
+
+```tsx
+<div data-scamp-id="root" className={`${styles.root} ${className ?? ''}`} data-state={state} data-scamp-outside="state:open=closed" data-scamp-escape="state:open=closed">
+  <button data-scamp-id="trigger_e51a" className={styles.trigger_e51a} type="button" data-scamp-click="state:closed=open,open=closed">{trigger}</button>
+```
+
+The handler sets `data-<axis>` on the nearest element that carries it,
+which is the component's root. A route that ships no JavaScript for any
+other reason ships the handler when a view or component it renders
+declares one of these attributes. The `state` prop still sets the value
+the page starts with; a route that passes it again on a later render
+wins over the handler.
+
 ### 1.4 View metadata
 
 Every view and component ends with one named export:

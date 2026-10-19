@@ -82,6 +82,33 @@ export default function Play() {
   return <Button label={\`Pressed \${n}\`} onPress={() => setN(n + 1)} />;
 }
 `,
+      // A static route whose component declares a click interaction: ships
+      // JavaScript, with the handler. CONTRACT.md §1.3.2
+      'components/Menu/Menu.tsx': `import styles from './Menu.module.css';
+
+type MenuProps = {
+  state?: "open" | "closed";
+  className?: string;
+};
+
+export default function Menu({ state = "closed", className }: MenuProps) {
+  return (
+    <div data-scamp-id="root" className={\`\${styles.root} \${className ?? ''}\`} data-state={state} data-scamp-outside="state:open=closed">
+      <button data-scamp-id="trigger_e51a" className={styles.trigger_e51a} type="button" data-scamp-click="state:closed=open,open=closed">Options</button>
+    </div>
+  );
+}
+
+export const _scamp = { contract: 2, events: [] } as const;
+`,
+      'components/Menu/Menu.module.css':
+        '.root {\n  position: relative;\n}\n\n.trigger_e51a {\n  padding: 8px;\n}\n',
+      'routes/menu.tsx': `import Menu from '@/components/Menu/Menu';
+
+export default function MenuPage() {
+  return <Menu />;
+}
+`,
       // A client route: always hydrates.
       'routes/app.tsx': `import Home from '@/views/Home/Home';
 
@@ -169,6 +196,15 @@ export default function Team({ data }: RouteProps<typeof load>) {
     expect(src).toMatch(/^\/assets\/.+\.js$/);
     const js = readFileSync(join(dir, 'dist', src.slice(1)), 'utf8');
     expect(js).toContain('scamp-root');
+  });
+
+  it('ships the interaction handler to a static route whose component declares a click', () => {
+    const html = readFileSync(join(dir, 'dist', 'menu', 'index.html'), 'utf8');
+    expect(html).toContain('data-scamp-click="state:closed=open,open=closed"');
+    const src = /<script type="module" src="([^"]+)"/.exec(html)?.[1] ?? '';
+    expect(src).toMatch(/^\/assets\/.+\.js$/);
+    const js = readFileSync(join(dir, 'dist', src.slice(1)), 'utf8');
+    expect(js).toContain('data-scamp-outside');
   });
 
   it("drops load() and its imports from a hydrated route's browser bundle", async () => {

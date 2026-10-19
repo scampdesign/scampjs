@@ -14,7 +14,7 @@ import type { Params } from '../runtime/index.js';
 import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import { withParams } from '../runtime/params.js';
 import { documentShell } from './shell.js';
-import { entryUrl } from './vitePlugin.js';
+import { INTERACTIONS_URL, entryUrl } from './vitePlugin.js';
 import { viewFile } from './views.js';
 
 const VITE_CLIENT = '/@vite/client';
@@ -94,7 +94,8 @@ export const renderRoute = async (
       request: input.request,
       env: input.env,
       styles,
-      baseScripts: [VITE_CLIENT],
+      // A page that doesn't hydrate still runs its click interactions.
+      baseScripts: client ? [VITE_CLIENT] : [VITE_CLIENT, INTERACTIONS_URL],
       entry: entryUrl(url),
       javascript: client,
     }),
@@ -137,6 +138,11 @@ export const renderView = async (
   );
   const styles = [themeCss(root), ...(await collectCss(vite, file))];
   return {
-    html: documentShell({ title: name, styles, body, scripts: [VITE_CLIENT] }),
+    html: documentShell({
+      title: name,
+      styles,
+      body,
+      scripts: [VITE_CLIENT, INTERACTIONS_URL],
+    }),
   };
 };

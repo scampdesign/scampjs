@@ -10,6 +10,15 @@ import type { Plugin } from 'vite';
 
 export const ENTRY_PREFIX = 'virtual:scamp-entry';
 
+/**
+ * The click, outside, and Escape handler on its own, for a dev page that
+ * doesn't hydrate. CONTRACT.md §1.3.2
+ */
+export const INTERACTIONS_ID = 'virtual:scamp-interactions';
+export const INTERACTIONS_URL = `/@id/${INTERACTIONS_ID}`;
+const INTERACTIONS_CODE =
+  "import { installInteractions } from 'scampjs/runtime';\ninstallInteractions(document);\n";
+
 export type EntryMode = 'hydrate' | 'css';
 
 /**
@@ -50,7 +59,7 @@ import Route from ${JSON.stringify(routeUrl)};
 const payload = JSON.parse(document.getElementById('scamp-data').textContent);
 globalThis[Symbol.for('scampjs.params')] = payload.params;
 hydrate(h(Route, { params: payload.params, data: payload.data }), document.getElementById('scamp-root'));
-`;
+${INTERACTIONS_CODE}`;
 };
 
 export const scampPlugin = (root: string): Plugin => ({
@@ -69,8 +78,10 @@ export const scampPlugin = (root: string): Plugin => ({
       jsx: { runtime: 'automatic', importSource: 'preact' },
     },
   }),
-  resolveId: (id): string | null => (id.startsWith(ENTRY_PREFIX) ? id : null),
+  resolveId: (id): string | null =>
+    id.startsWith(ENTRY_PREFIX) || id === INTERACTIONS_ID ? id : null,
   load: (id): string | null => {
+    if (id === INTERACTIONS_ID) return INTERACTIONS_CODE;
     if (!id.startsWith(ENTRY_PREFIX)) return null;
     const query = new URLSearchParams(id.slice(ENTRY_PREFIX.length));
     const route = query.get('route');

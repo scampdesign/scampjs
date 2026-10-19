@@ -18,6 +18,7 @@ import { readEnv } from '../dev/env.js';
 import { scanApiRoutes, scanRoutes } from '../dev/routes.js';
 import type { RouteEntry } from '../dev/routes.js';
 import { entryId, scampPlugin } from '../dev/vitePlugin.js';
+import { declaresInteractions } from '../runtime/interactions.js';
 import type { Params, RenderMode } from '../runtime/index.js';
 import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import type { RouteModuleShape } from '../server/render.js';
@@ -292,8 +293,13 @@ export const buildProject = async (
     }
     const eventViews: string[] = [];
     for (const id of islands.get(routeFile(route)) ?? []) {
-      const events = eventsDeclaredIn(await readFile(id, 'utf8'));
-      if (events !== null && events.length > 0)
+      // Click interactions need the browser too. CONTRACT.md §1.3.2
+      const source = await readFile(id, 'utf8');
+      const events = eventsDeclaredIn(source);
+      if (
+        (events !== null && events.length > 0) ||
+        declaresInteractions(source)
+      )
         eventViews.push(relative(root, id));
     }
     planned.push({

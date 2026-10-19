@@ -97,3 +97,5 @@ export type LinkProps = Omit<JSX.HTMLAttributes<HTMLAnchorElement>, 'href'> & {
 /** An anchor. Exists so a route file has one import for links, not a convention. */
 export const Link = ({ href, children, ...rest }: LinkProps): JSX.Element =>
   h('a', { ...rest, href }, children);
+
+export { installInteractions } from './interactions.js';
