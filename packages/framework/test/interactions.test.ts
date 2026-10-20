@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyClick,
   declaresInteractions,
   nextValue,
   parseInteractions,
@@ -72,5 +73,68 @@ describe('declaresInteractions', () => {
       declaresInteractions('<div data-scamp-escape="state:open=closed">'),
     ).toBe(true);
     expect(declaresInteractions('<div data-state={state}>')).toBe(false);
+  });
+});
+
+/** Just enough of an element for the click handler: attributes, a parent, `closest([attr])`. */
+class FakeElement {
+  constructor(
+    readonly attrs: Record<string, string>,
+    readonly parentElement: FakeElement | null = null,
+  ) {}
+  getAttribute(name: string): string | null {
+    return this.attrs[name] ?? null;
+  }
+  setAttribute(name: string, value: string): void {
+    this.attrs[name] = value;
+  }
+  closest(selector: string): FakeElement | null {
+    const name = /^\[([^\]=]+)\]$/.exec(selector)?.[1] ?? '';
+    if (name in this.attrs) return this;
+    return this.parentElement?.closest(selector) ?? null;
+  }
+}
+
+describe('applyClick', () => {
+  // A menu: the root opens it, its trigger closes it.
+  const menu = (
+    state: string,
+  ): { root: FakeElement; trigger: FakeElement; label: FakeElement } => {
+    const root = new FakeElement({
+      'data-state': state,
+      'data-scamp-click': 'state:closed=open',
+    });
+    const trigger = new FakeElement(
+      { 'data-scamp-click': 'state:open=closed' },
+      root,
+    );
+    const label = new FakeElement({}, trigger);
+    return { root, trigger, label };
+  };
+  const click = (el: FakeElement): void => applyClick(el as unknown as Element);
+
+  it('counts a click for every element it bubbles through: closed opens from the root', () => {
+    const { root, label } = menu('closed');
+    click(label);
+    expect(root.getAttribute('data-state')).toBe('open');
+  });
+
+  it('lets the innermost transition win, once per click: open closes from the trigger', () => {
+    const { root, trigger } = menu('open');
+    click(trigger);
+    expect(root.getAttribute('data-state')).toBe('closed');
+  });
+
+  it('toggles on repeated clicks', () => {
+    const { root, trigger } = menu('closed');
+    click(trigger);
+    click(trigger);
+    click(trigger);
+    expect(root.getAttribute('data-state')).toBe('open');
+  });
+
+  it('does nothing for a click outside any interaction', () => {
+    const outside = new FakeElement({});
+    expect(() => click(outside)).not.toThrow();
   });
 });

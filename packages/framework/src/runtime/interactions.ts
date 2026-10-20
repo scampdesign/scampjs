@@ -60,6 +60,34 @@ const apply = (el: Element, attribute: string): void => {
   }
 };
 
+/**
+ * A click, as it bubbles: every element from the one clicked outward that
+ * declares a click interaction is considered, and for each axis the
+ * innermost one with a transition from the current value wins. So a
+ * menu whose root opens it (`closed=open`) and whose trigger closes it
+ * (`open=closed`) toggles from a click on the trigger.
+ */
+export const applyClick = (target: Element): void => {
+  const done = new Map<Element, Set<string>>();
+  for (
+    let el = target.closest('[data-scamp-click]');
+    el !== null;
+    el = el.parentElement?.closest('[data-scamp-click]') ?? null
+  ) {
+    for (const group of parseInteractions(
+      el.getAttribute('data-scamp-click') ?? '',
+    )) {
+      const name = `data-${group.axis}`;
+      const root = el.closest(`[${name}]`);
+      if (root === null || done.get(root)?.has(group.axis) === true) continue;
+      const next = nextValue(group.transitions, root.getAttribute(name));
+      if (next === null) continue;
+      root.setAttribute(name, next);
+      done.set(root, new Set([...(done.get(root) ?? []), group.axis]));
+    }
+  }
+};
+
 const INSTALLED = Symbol.for('scampjs.interactions');
 
 /**
@@ -78,8 +106,7 @@ export const installInteractions = (doc: Document): void => {
       if (target === null || !root.contains(target))
         apply(root, 'data-scamp-outside');
     }
-    const clicked = target?.closest('[data-scamp-click]') ?? null;
-    if (clicked !== null) apply(clicked, 'data-scamp-click');
+    if (target !== null) applyClick(target);
   });
   doc.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;

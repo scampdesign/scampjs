@@ -421,6 +421,12 @@ The value is one group per axis, separated by spaces:
   <button data-scamp-id="trigger_e51a" className={styles.trigger_e51a} type="button" data-scamp-click="state:closed=open,open=closed">{trigger}</button>
 ```
 
+A click counts for every element it passes through on its way out, as
+DOM events bubble: for each axis, the innermost element with a
+transition from the current value wins, once per click. So a root with
+`state:closed=open` and a trigger inside it with `state:open=closed`
+toggles from a click on the trigger.
+
 The handler sets `data-<axis>` on the nearest element that carries it,
 which is the component's root. A route that ships no JavaScript for any
 other reason ships the handler when a view or component it renders
