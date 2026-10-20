@@ -398,8 +398,9 @@ same:
 | press   | `:active`                |
 | focus   | `:focus-visible`         |
 
-A `from` of any value drops the axis's attribute from the second
-selector (`.root:hover .label_c1a1`). Press and hover both match while
+A `from` of any value keeps the axis's attribute with no value
+(`.root[data-state]:hover .label_c1a1`), which stays as specific as
+the other values' rules it has to beat. Press and hover both match while
 the pointer is pressed; the rule written later wins, so a pressed value
 comes after a hover value in the union.
 
