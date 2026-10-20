@@ -704,7 +704,7 @@ every stylesheet the route's modules import inlined after it, and:
 Any change under the project reloads open pages. A route error is a
 `500` whose body is the message and stack.
 
-### 2.2 `/_views/<Name>` and `/_views/`
+### 2.2 `/_views/<Name>`, `/_views/`, and `/_components/<Name>`
 
 `GET /_views/<Name>` renders `views/<Name>/<Name>.tsx` with its
 defaults inside the document shell with `design/theme.css`, as HTML.
@@ -713,6 +713,10 @@ unknown name is `404`.
 
 `GET /_views/` returns `application/json`: the view names, sorted,
 as `{ "views": ["Home", "Lobby"] }`. Components are not listed.
+
+`GET /_components/<Name>` renders `components/<Name>/<Name>.tsx` the
+same way: one component with its defaults, for trying its interactions
+(section 1.3.2) in a browser. An unknown name is `404`.
 
 ### 2.3 `scamp build`
 

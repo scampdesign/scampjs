@@ -7,8 +7,14 @@ import { join } from 'node:path';
 
 export const VIEW_NAME = /^[A-Z][A-Za-z0-9]*$/;
 
-export const viewFile = (root: string, name: string): string =>
-  join(root, 'views', name, `${name}.tsx`);
+/** Where views and components live. */
+export type DesignFolder = 'views' | 'components';
+
+export const viewFile = (
+  root: string,
+  name: string,
+  folder: DesignFolder = 'views',
+): string => join(root, folder, name, `${name}.tsx`);
 
 export const listViews = (root: string): string[] => {
   const dir = join(root, 'views');

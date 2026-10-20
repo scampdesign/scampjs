@@ -15,7 +15,7 @@ import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import { withParams } from '../runtime/params.js';
 import { documentShell } from './shell.js';
 import { INTERACTIONS_URL, entryUrl } from './vitePlugin.js';
-import { viewFile } from './views.js';
+import { viewFile, type DesignFolder } from './views.js';
 
 const VITE_CLIENT = '/@vite/client';
 
@@ -103,25 +103,26 @@ export const renderRoute = async (
 };
 
 /**
- * Render `views/<Name>/<Name>.tsx` with its defaults. Null when the
- * view does not exist; throws when it is written for a newer contract
- * than this package reads.
+ * Render `views/<Name>/<Name>.tsx` (or a component) with its defaults.
+ * Null when it does not exist; throws when it is written for a newer
+ * contract than this package reads.
  */
 export const renderView = async (
   vite: ViteDevServer,
   root: string,
   name: string,
+  folder: DesignFolder = 'views',
 ): Promise<RenderedPage | null> => {
-  const file = viewFile(root, name);
+  const file = viewFile(root, name, folder);
   let mod: unknown;
   try {
-    mod = await vite.ssrLoadModule(`/views/${name}/${name}.tsx`);
+    mod = await vite.ssrLoadModule(`/${folder}/${name}/${name}.tsx`);
   } catch (err) {
     if (isRecord(err) && err['code'] === 'ERR_LOAD_URL') return null;
     throw err;
   }
   if (!isRecord(mod) || !isFunction(mod['default'])) {
-    throw new Error(`views/${name}/${name}.tsx has no default export.`);
+    throw new Error(`${folder}/${name}/${name}.tsx has no default export.`);
   }
   const meta = mod['_scamp'];
   if (
@@ -130,7 +131,7 @@ export const renderView = async (
     meta['contract'] > CONTRACT_VERSION
   ) {
     throw new Error(
-      `views/${name}/${name}.tsx was written for contract ${meta['contract']}; this scampjs reads up to ${CONTRACT_VERSION}. Update scampjs.`,
+      `${folder}/${name}/${name}.tsx was written for contract ${meta['contract']}; this scampjs reads up to ${CONTRACT_VERSION}. Update scampjs.`,
     );
   }
   const body = withParams({}, () =>

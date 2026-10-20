@@ -90,9 +90,17 @@ const buildApp = (
     const page = await renderView(vite, root, name);
     return page === null ? c.text('Not found', 404) : c.html(page.html);
   });
+  // One component with its defaults, to try its interactions in a browser.
+  app.get('/_components/:name', async (c) => {
+    const name = c.req.param('name');
+    if (!VIEW_NAME.test(name)) return c.text('Not found', 404);
+    const page = await renderView(vite, root, name, 'components');
+    return page === null ? c.text('Not found', 404) : c.html(page.html);
+  });
   app.all('*', async (c) => {
     const path = c.req.path;
-    if (path.startsWith('/_views')) return c.text('Not found', 404);
+    if (path.startsWith('/_views') || path.startsWith('/_components'))
+      return c.text('Not found', 404);
     if (path === '/api' || path.startsWith('/api/')) {
       const answer = await handleApiRequest(
         apiRoutes(),

@@ -84,6 +84,23 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect((await get(server, '/_views/..%2Fpackage')).status).toBe(404);
   });
 
+  it('GET /_components/Button renders one component with its defaults, and the interaction handler', async () => {
+    const res = await get(server, '/_components/Button');
+    expect(res.status).toBe(200);
+    expect(res.type).toContain('text/html');
+    expect(res.text).toContain('data-variant="default"');
+    expect(res.text).toContain('Save');
+    // Its click, outside, and Escape interactions run here. CONTRACT.md §1.3.2
+    expect(res.text).toContain('virtual:scamp-interactions');
+  });
+
+  it('GET /_components/<unknown> is 404, as is a view, a lowercase or a traversal name', async () => {
+    expect((await get(server, '/_components/Nope')).status).toBe(404);
+    expect((await get(server, '/_components/Lobby')).status).toBe(404);
+    expect((await get(server, '/_components/button')).status).toBe(404);
+    expect((await get(server, '/_components/..%2Fpackage')).status).toBe(404);
+  });
+
   it('GET / renders the static index route with no JavaScript beyond the Vite client', async () => {
     const res = await get(server, '/');
     expect(res.status).toBe(200);
