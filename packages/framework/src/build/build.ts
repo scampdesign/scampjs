@@ -18,6 +18,7 @@ import { readEnv } from '../dev/env.js';
 import { scanApiRoutes, scanRoutes } from '../dev/routes.js';
 import type { RouteEntry } from '../dev/routes.js';
 import { entryId, scampPlugin } from '../dev/vitePlugin.js';
+import { projectHead } from '../dev/head.js';
 import { declaresInteractions } from '../runtime/interactions.js';
 import type { Params, RenderMode } from '../runtime/index.js';
 import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
@@ -162,6 +163,7 @@ const serverEntryCode = (
     Planned & { stylesheets: string[]; script: string | null }
   >,
   api: ReadonlyArray<RouteEntry>,
+  head: string,
 ): string => {
   const lines: string[] = ["import { createServerApp } from 'scampjs/server';"];
   planned.forEach((p, i) =>
@@ -189,6 +191,7 @@ const serverEntryCode = (
     );
   });
   lines.push('  ],');
+  lines.push(`  head: ${JSON.stringify(head)},`);
   lines.push('});');
   return `${lines.join('\n')}\n`;
 };
@@ -369,6 +372,7 @@ export const buildProject = async (
 
   // Prerender what can be prerendered.
   const env = readEnv(root);
+  const head = projectHead(root);
   const built: BuiltRoute[] = [];
   for (const entry of assets) {
     const pages: string[] = [];
@@ -380,6 +384,7 @@ export const buildProject = async (
         const html = await renderPage({
           route: entry.shape,
           title: routeTitle(entry.route.file),
+          head,
           params,
           request: new Request(`http://localhost${path}`),
           env,
@@ -419,7 +424,7 @@ export const buildProject = async (
       ...shared,
       plugins: [
         scampPlugin(root),
-        virtualPlugin(SERVER_ENTRY, serverEntryCode(assets, api)),
+        virtualPlugin(SERVER_ENTRY, serverEntryCode(assets, api, head)),
       ],
       build: {
         ssr: true,

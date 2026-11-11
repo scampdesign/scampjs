@@ -64,6 +64,8 @@ export const routeModuleShape = (
 export type PageRenderInput = {
   route: RouteModuleShape;
   title: string;
+  /** The project's `design/head.html`. */
+  head?: string;
   params: Params;
   request: Request;
   env: Record<string, unknown>;
@@ -97,6 +99,7 @@ export const renderPage = async (input: PageRenderInput): Promise<string> => {
   ];
   return documentShell({
     title: input.title,
+    head: input.head,
     styles: input.styles ?? [],
     links: input.links ?? [],
     body,

@@ -51,6 +51,7 @@ my-project/
   routes/**                         ← logic       (yours; never scanned, never generated)
   routes/api/**                     ← API handlers (yours; section 1.5)
   design/theme.css                  ← tokens and fonts (app-owned)
+  design/head.html                  ← optional extra <head> markup (yours; section 1.7.1)
   design/DESIGN.md                  ← optional
   scamp-env.d.ts                    ← optional Env augmentation (yours)
   scamp.config.json                 ← app-owned; the framework ignores it
@@ -63,6 +64,7 @@ my-project/
 | `views/`, `components/`                                 | Scans, lists, regenerates | Serves each at `/_views/<Name>`; reads `_scamp` |
 | `routes/`                                               | Never scans               | Owns routing over it                            |
 | `design/theme.css`                                      | Edits                     | Injects into the document shell                 |
+| `design/head.html`                                      | Never writes              | Inserts into the shell's `<head>`, first        |
 | `.scamp/`, `scamp.config.json`, `agent.md`, `CLAUDE.md` | Owns                      | Ignores                                         |
 
 There is no `app/`, no `layout.tsx`, and no `pages/`. The framework
@@ -589,6 +591,30 @@ body {
 }
 ```
 
+### 1.7.1 `design/head.html`
+
+Optional. Markup the project wants in every page's `<head>`: icons, a
+web app manifest, a theme colour, or a small inline script that must
+run before the first paint, such as applying a saved dark theme. The
+framework inserts the file verbatim, trimmed, after `<title>` and
+before every stylesheet, in the document shell of every route, of
+`/_views/<Name>` and of `/_components/<Name>`. It is never escaped or
+parsed. Absent, nothing is added.
+
+<!-- fixture(contract-2): design/head.html -->
+
+```html
+<meta name="theme-color" content="#ffffff">
+<script>
+  // Apply a saved dark theme before the first paint, so pages never flash light.
+  if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+</script>
+```
+
+The dev server reads it on every request. `scamp build` reads it once:
+prerendered pages carry it, and the server bundle (section 2.6) has its
+text built in, since a host may have no filesystem.
+
 ### 1.8 `package.json` and `tsconfig.json`
 
 <!-- fixture: package.json -->
@@ -699,8 +725,9 @@ stderr, and its format is not part of the contract.
 **What the dev server does with a route.** It runs `load()` with a
 `LoadContext` whose `env` is `process.env` overlaid with the project's
 `.dev.vars` (one `KEY=value` per line), renders the route on the
-server inside the document shell with `design/theme.css` first and
-every stylesheet the route's modules import inlined after it, and:
+server inside the document shell with `design/head.html` and then
+`design/theme.css` first and every stylesheet the route's modules
+import inlined after it, and:
 
 - for `render = 'client'`, serialises `{ params, data }` into the page
   and hydrates the route in the browser;
@@ -713,7 +740,8 @@ Any change under the project reloads open pages. A route error is a
 ### 2.2 `/_views/<Name>`, `/_views/`, and `/_components/<Name>`
 
 `GET /_views/<Name>` renders `views/<Name>/<Name>.tsx` with its
-defaults inside the document shell with `design/theme.css`, as HTML.
+defaults inside the document shell with `design/head.html` and
+`design/theme.css`, as HTML.
 This is the app's view preview and the parity harness's target. An
 unknown name is `404`.
 
@@ -755,8 +783,9 @@ renders again in the browser from them. The browser bundle imports only
 the route's default export, so `load()` and what it alone imports are
 not shipped.
 
-**Stylesheets.** Every page links `design/theme.css` first, then the
-CSS modules its route reached, as hashed files under `dist/assets/`.
+**Stylesheets.** Every page carries `design/head.html` ahead of its
+stylesheets, then links `design/theme.css` first, then the CSS modules
+its route reached, as hashed files under `dist/assets/`.
 
 ### 2.4 `scamp preview [--port <n>]`
 
@@ -900,3 +929,4 @@ contract 2 adds:
 | `routes/api/games/[token]/start.ts`            | A plain `POST` handler with params and `env`                      |
 | `routes/api/health.ts`                         | A default-exported Hono app and its sub-path                      |
 | `components/Button/Button.tsx` + `.module.css` | Variant axes: `variant` and `size`, with a state inside a variant |
+| `design/head.html`                             | Extra `<head>` markup: a theme colour and a before-paint script   |

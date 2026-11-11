@@ -101,6 +101,7 @@ describe('scamp build with an adapter', () => {
   let app: HonoLike;
   beforeAll(async () => {
     dir = scaffold('build-adapter', {
+      'design/head.html': '<meta name="theme-color" content="#123456">\n',
       '.dev.vars': 'GREETING=from-dev-vars\n',
       'routes/account.tsx': `import type { LoadContext, RouteProps } from 'scampjs/runtime';
 
@@ -178,6 +179,15 @@ export default new Hono().get('/', (c) => c.json({ ok: true }));
     expect(html).toContain('alex at /account');
     expect(html).toMatch(/<link rel="stylesheet" href="\/assets\/[^"]+\.css">/);
     expect(html).not.toContain('<script');
+  });
+
+  it('bakes design/head.html into the server bundle for per-request pages', async () => {
+    const html = await (
+      await app.fetch(new Request('http://localhost/account'), {})
+    ).text();
+    const at = html.indexOf('<meta name="theme-color" content="#123456">');
+    expect(at).toBeGreaterThan(-1);
+    expect(at).toBeLessThan(html.indexOf('<link rel="stylesheet"'));
   });
 
   it('serves a dynamic route with no params() per request', async () => {

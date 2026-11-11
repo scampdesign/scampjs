@@ -32,6 +32,8 @@ export type ServerApi = {
 export type ServerAppOptions = {
   routes: ServerRoute[];
   api: ServerApi[];
+  /** The project's `design/head.html`, baked in at build time. */
+  head?: string;
 };
 
 const asEnv = (value: unknown): Record<string, unknown> =>
@@ -69,6 +71,7 @@ export const createServerApp = (opts: ServerAppOptions): Hono => {
     const html = await renderPage({
       route: routeModuleShape(page.module, `routes/${page.file}`),
       title: routeTitle(page.file),
+      head: opts.head,
       params: match.params,
       request: c.req.raw,
       env,

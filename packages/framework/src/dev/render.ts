@@ -13,6 +13,7 @@ import { CONTRACT_VERSION } from '../contract.js';
 import type { Params } from '../runtime/index.js';
 import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import { withParams } from '../runtime/params.js';
+import { projectHead } from './head.js';
 import { documentShell } from './shell.js';
 import { INTERACTIONS_URL, entryUrl } from './vitePlugin.js';
 import { viewFile, type DesignFolder } from './views.js';
@@ -90,6 +91,7 @@ export const renderRoute = async (
     html: await renderPage({
       route,
       title: routeTitle(input.file),
+      head: projectHead(input.root),
       params: input.params,
       request: input.request,
       env: input.env,
@@ -141,6 +143,7 @@ export const renderView = async (
   return {
     html: documentShell({
       title: name,
+      head: projectHead(root),
       styles,
       body,
       scripts: [VITE_CLIENT, INTERACTIONS_URL],

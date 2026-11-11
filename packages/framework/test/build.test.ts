@@ -57,6 +57,7 @@ describe('scamp build on a scaffolded project', () => {
   let dir: string;
   beforeAll(async () => {
     dir = scaffold('build-basic', {
+      'design/head.html': '<meta name="theme-color" content="#123456">\n',
       // A static route with a load() that reads env and the request.
       '.dev.vars': 'GREETING=built\n',
       'routes/about.tsx': `import type { LoadContext, RouteProps } from 'scampjs/runtime';
@@ -155,6 +156,19 @@ export default function Team({ data }: RouteProps<typeof load>) {
     expect(files.some((f) => f.startsWith('.vite'))).toBe(false);
     expect(existsSync(join(dir, 'node_modules', '.scamp'))).toBe(true);
     expect(readdirSync(join(dir, 'node_modules', '.scamp'))).toEqual([]);
+  });
+
+  it('puts design/head.html in every prerendered page, before the stylesheets', () => {
+    for (const page of [
+      'index.html',
+      'about/index.html',
+      'team/alpha/index.html',
+    ]) {
+      const html = readFileSync(join(dir, 'dist', page), 'utf8');
+      const at = html.indexOf('<meta name="theme-color" content="#123456">');
+      expect(at, page).toBeGreaterThan(-1);
+      expect(at, page).toBeLessThan(html.indexOf('<link rel="stylesheet"'));
+    }
   });
 
   it('ships no JavaScript on a static route whose views declare no events', () => {

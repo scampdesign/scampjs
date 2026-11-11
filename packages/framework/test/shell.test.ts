@@ -33,6 +33,31 @@ describe('documentShell', () => {
     expect(html).toContain('\\u003c/script>');
   });
 
+  it('puts the project head after the title and before every stylesheet, verbatim', () => {
+    const head =
+      '<meta name="theme-color" content="#fff">\n<script>document.documentElement.classList.add("dark")</script>';
+    const html = documentShell({
+      title: 'Lobby',
+      head,
+      links: ['/assets/theme.css'],
+      styles: ['body{margin:0}'],
+      body: '',
+    });
+    const at = html.indexOf(head);
+    expect(at).toBeGreaterThan(html.indexOf('<title>Lobby</title>'));
+    expect(at).toBeLessThan(html.indexOf('<link rel="stylesheet"'));
+    expect(at).toBeLessThan(html.indexOf('<style>'));
+    expect(at).toBeLessThan(html.indexOf('</head>'));
+  });
+
+  it('adds nothing when the project has no head', () => {
+    const bare = documentShell({ title: 'T', styles: [], body: '' });
+    expect(documentShell({ title: 'T', head: '', styles: [], body: '' })).toBe(
+      bare,
+    );
+    expect(bare).toContain('<title>T</title>\n</head>');
+  });
+
   it('escapeHtml handles the four characters', () => {
     expect(escapeHtml('a<b>&"c"')).toBe('a&lt;b&gt;&amp;&quot;c&quot;');
   });

@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDevServer, type DevServer } from '../src/dev/server.js';
@@ -107,6 +113,20 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect(res.text).toContain('Noise With Friends');
     expect(res.text).not.toContain('scamp-data');
     expect(res.text).not.toContain('virtual:scamp-entry');
+  });
+
+  it('puts design/head.html in the head of routes, view and component previews, before the theme', async () => {
+    const head = readFileSync(
+      join(fixture, 'design', 'head.html'),
+      'utf8',
+    ).trim();
+    for (const path of ['/', '/_views/Lobby', '/_components/Button']) {
+      const res = await get(server, path);
+      const at = res.text.indexOf(head);
+      expect(at, path).toBeGreaterThan(-1);
+      expect(at, path).toBeLessThan(res.text.indexOf('--color-bg'));
+      expect(at, path).toBeLessThan(res.text.indexOf('</head>'));
+    }
   });
 
   it('renders React-style SVG attributes as SVG names, on the route and the view preview', async () => {

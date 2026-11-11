@@ -1,10 +1,13 @@
 /**
  * The document shell. There is no `layout.tsx`: every route and every
- * `/_views/<Name>` renders inside this, with `design/theme.css` first.
+ * `/_views/<Name>` renders inside this, with the project's
+ * `design/head.html` and then `design/theme.css` first.
  */
 
 export type ShellOptions = {
   title: string;
+  /** The project's `design/head.html`, verbatim, ahead of every stylesheet. */
+  head?: string;
   /** Inlined `<style>` blocks, theme first. */
   styles: ReadonlyArray<string>;
   /** `<link rel="stylesheet">` hrefs, before the inlined blocks. */
@@ -51,6 +54,8 @@ export const documentShell = (opts: ShellOptions): string => {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${escapeHtml(opts.title)}</title>`,
+    // Before the stylesheets, so a script here runs before first paint.
+    ...(opts.head ? [opts.head] : []),
     ...links,
     ...styles,
     '</head>',
