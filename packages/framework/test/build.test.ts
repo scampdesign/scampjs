@@ -306,6 +306,58 @@ export default function Index({ data }: RouteProps<typeof load>) {
   });
 });
 
+describe('scamp build styles a static page whose view no other route renders', () => {
+  // The CSS-only entry was tree-shaken to nothing, taking the view's CSS
+  // module with it; a view shared with a hydrated route hid that.
+  let dir: string;
+  beforeAll(async () => {
+    dir = scaffold('build-solo-css', {
+      'views/Solo/Solo.module.css': '.root {\n  color: rebeccapurple;\n}\n',
+      'views/Solo/Solo.tsx': `import styles from './Solo.module.css';
+
+export default function Solo() {
+  return <div data-scamp-id="root" className={styles.root} />;
+}
+
+export const _scamp = { contract: 2, events: [] } as const;
+`,
+      'routes/solo.tsx': `import Solo from '@/views/Solo/Solo';
+
+export default function SoloRoute() {
+  return <Solo />;
+}
+`,
+    });
+    await buildProject({ root: dir, stderr: quiet });
+  }, 120_000);
+  afterAll(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('links the theme, then the view module, on each such page', () => {
+    for (const page of ['index.html', 'solo/index.html']) {
+      const html = readFileSync(join(dir, 'dist', page), 'utf8');
+      expect(html, page).not.toContain('<script');
+      const text = [
+        ...html.matchAll(
+          /<link rel="stylesheet" href="(\/assets\/[^"]+\.css)">/g,
+        ),
+      ]
+        .map((m) =>
+          readFileSync(join(dir, 'dist', (m[1] ?? '').slice(1)), 'utf8'),
+        )
+        .join('\n');
+      const cls = /class="([^" ]+)/.exec(html)?.[1] ?? '';
+      expect(cls, page).not.toBe('');
+      expect(text, page).toContain(`.${cls}`);
+      expect(text.indexOf('--color-primary'), page).toBeGreaterThan(-1);
+      expect(text.indexOf('--color-primary'), page).toBeLessThan(
+        text.indexOf(`.${cls}`),
+      );
+    }
+  });
+});
+
 describe('scamp build refuses what the static adapter cannot serve', () => {
   it('names a server route and a dynamic route without params(), and writes nothing', async () => {
     const dir = scaffold('build-refuse', {

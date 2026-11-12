@@ -46,10 +46,12 @@ const entryCode = (
   theme: boolean,
 ): string => {
   const head = theme ? "import '/design/theme.css';\n" : '';
-  // Re-exporting keeps the route's module graph, and with it the view
-  // stylesheets, in the build; the emitted script is never linked.
+  // A side effect that uses the route keeps its module graph, and with it
+  // the view stylesheets, in the build. An app build drops an entry's
+  // exports, so `export default Route` alone let the route, its views and
+  // their CSS modules be tree-shaken away. The script is never linked.
   if (mode === 'css') {
-    return `${head}import Route from ${JSON.stringify(routeUrl)};\nexport default Route;\n`;
+    return `${head}import Route from ${JSON.stringify(routeUrl)};\nglobalThis[Symbol.for('scampjs.cssEntry')] = Route;\n`;
   }
   // `preact/compat` first, as on the server: without it the first
   // re-render writes `strokeWidth` back. see docs/notes/svg-attribute-names.md

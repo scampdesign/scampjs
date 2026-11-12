@@ -136,12 +136,13 @@ const stylesheetsFor = (manifest: Manifest, entryKey: string): string[] => {
     seen.add(key);
     const chunk = manifest[key];
     if (chunk === undefined) return;
-    // The entry's own stylesheet first: it carries the theme, which the
-    // contract puts before everything else.
+    // Imported chunks first: every entry imports the theme, so with more
+    // than one route it sits in a shared chunk, and the contract puts it
+    // before everything else. Shared styles then precede the page's own.
+    for (const imported of chunk.imports ?? []) visit(imported);
     for (const css of chunk.css ?? []) if (!out.includes(css)) out.push(css);
     if (chunk.file.endsWith('.css') && !out.includes(chunk.file))
       out.push(chunk.file);
-    for (const imported of chunk.imports ?? []) visit(imported);
   };
   visit(entryKey);
   return out;
