@@ -5,6 +5,7 @@
  * see docs/notes/server.md
  */
 import { Hono } from 'hono';
+import type { ExecutionContext } from 'hono';
 import type { RouteEntry, Segment } from '../dev/routes.js';
 import { matchRoute } from '../dev/routes.js';
 import type { RenderMode } from '../runtime/index.js';
@@ -36,6 +37,17 @@ export type ServerAppOptions = {
   head?: string;
 };
 
+/** The host's execution context, or undefined: Hono's getter throws when the host gave none. */
+const executionCtxOf = (c: {
+  executionCtx: ExecutionContext;
+}): ExecutionContext | undefined => {
+  try {
+    return c.executionCtx;
+  } catch {
+    return undefined;
+  }
+};
+
 const asEnv = (value: unknown): Record<string, unknown> =>
   typeof value === 'object' && value !== null
     ? (value as Record<string, unknown>)
@@ -58,8 +70,12 @@ export const createServerApp = (opts: ServerAppOptions): Hono => {
     const path = c.req.path;
     const env = asEnv(c.env);
     if (path === '/api' || path.startsWith('/api/')) {
-      const answer = await handleApiRequest(apiTable, c.req.raw, env, (file) =>
-        Promise.resolve(apiModules.get(file)),
+      const answer = await handleApiRequest(
+        apiTable,
+        c.req.raw,
+        env,
+        (file) => Promise.resolve(apiModules.get(file)),
+        executionCtxOf(c),
       );
       return answer ?? c.text('Not found', 404);
     }

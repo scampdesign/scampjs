@@ -5,6 +5,7 @@
  * file's path. Shared by the dev server and the built server.
  */
 import { Hono } from 'hono';
+import type { ExecutionContext } from 'hono';
 import type { Env, LoadContext, Params } from '../runtime/index.js';
 import { matchRoutePrefixes } from '../dev/routes.js';
 import type { RouteEntry, Segment } from '../dev/routes.js';
@@ -50,6 +51,11 @@ export type ApiDispatchInput = {
   env: Record<string, unknown>;
   /** The file, for error messages. */
   file: string;
+  /**
+   * The host's execution context (Cloudflare Workers' `ctx`), when it has one. A Hono app reads it as
+   * `c.executionCtx`; without it, `waitUntil` work is cancelled once the response is sent.
+   */
+  executionCtx?: ExecutionContext;
 };
 
 /** Run the handler the request's method names, or the mounted Hono app. */
@@ -66,7 +72,7 @@ export const dispatchApi = async (
     // as they would be under `app.route()`; params stay visible to it.
     return new Hono()
       .route(mountPath(input.segments), app)
-      .fetch(request, input.env);
+      .fetch(request, input.env, input.executionCtx);
   }
   const method = request.method.toUpperCase();
   const handler = module[method];
@@ -122,6 +128,7 @@ export const handleApiRequest = async (
   request: Request,
   env: Record<string, unknown>,
   load: (file: string) => Promise<unknown>,
+  executionCtx?: ExecutionContext,
 ): Promise<Response | null> => {
   const pathname = new URL(request.url).pathname;
   for (const candidate of matchRoutePrefixes(routes, pathname)) {
@@ -135,6 +142,7 @@ export const handleApiRequest = async (
       request,
       env,
       file: candidate.route.file,
+      executionCtx,
     });
   }
   return null;

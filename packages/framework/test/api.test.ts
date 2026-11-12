@@ -7,6 +7,7 @@ import {
   scanApiRoutes,
 } from '../src/dev/routes.js';
 import { dispatchApi, handleApiRequest, mountPath } from '../src/server/api.js';
+import { createServerApp } from '../src/server/app.js';
 
 const segs = (file: string): ReturnType<typeof apiRouteSegments> =>
   apiRouteSegments(file);
@@ -199,6 +200,50 @@ describe('handleApiRequest', () => {
     expect(
       await handleApiRequest(routes, ctx('GET', '/api/nope'), {}, load),
     ).toBeNull();
+  });
+});
+
+describe('the built server and a Hono API app', () => {
+  // Work handed to waitUntil outlives the response on Cloudflare; without the host's
+  // context it was cancelled there (a background sync after a save never ran).
+  const jobs = new Hono().post('/', (c) => {
+    c.executionCtx.waitUntil(Promise.resolve('background work'));
+    return c.text('saved');
+  });
+  const server = createServerApp({
+    routes: [],
+    api: [
+      {
+        file: 'api/jobs.ts',
+        segments: apiRouteSegments('api/jobs.ts') ?? [],
+        module: { default: jobs },
+      },
+    ],
+  });
+
+  it("passes the host's execution context to the app", async () => {
+    const waited: Array<Promise<unknown>> = [];
+    const hostCtx = {
+      waitUntil: (p: Promise<unknown>): void => void waited.push(p),
+      passThroughOnException: (): void => {},
+      props: {},
+    };
+    const res = await server.fetch(
+      new Request('http://x/api/jobs', { method: 'POST' }),
+      {},
+      hostCtx,
+    );
+    expect(await res.text()).toBe('saved');
+    expect(waited).toHaveLength(1);
+    expect(await waited[0]).toBe('background work');
+  });
+
+  it('still answers when the host has no context (the app sees none, as on the dev server)', async () => {
+    const res = await server.fetch(
+      new Request('http://x/api/jobs', { method: 'POST' }),
+      {},
+    );
+    expect(res.status).toBe(500);
   });
 });
 

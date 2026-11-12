@@ -558,7 +558,10 @@ export default new Hono()
 
 `/api/health` and `/api/health/deep` both reach it; its routes are
 relative to the mount, and params in the file's path are visible to
-it. The exact file wins over a mounted app on a prefix.
+it. The exact file wins over a mounted app on a prefix. In a build, the
+app's `c.executionCtx` is the one the host handed `fetch()` (on
+Cloudflare Workers, the request's `ctx`), so `c.executionCtx.waitUntil()`
+keeps work running after the response; `scamp dev` has none.
 
 ### 1.6 `Env`
 

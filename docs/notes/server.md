@@ -24,7 +24,9 @@ built server use:
 - `app.ts`: `createServerApp` is the built server: a Hono app over the
   route table `scamp build` writes into the server entry, with every
   route and API module imported statically. `env` is whatever the host
-  hands `fetch()`; on Cloudflare that is the bindings object.
+  hands `fetch()`; on Cloudflare that is the bindings object. The host's
+  execution context is passed on to a mounted Hono app as
+  `c.executionCtx`, so `waitUntil` work outlives the response.
 
 The dev server keeps loading modules through Vite and inlining styles;
 it calls the same `renderPage` and `handleApiRequest`.
