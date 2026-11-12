@@ -146,6 +146,8 @@ describe('scamp dev on the contract-0 fixture', () => {
     expect(res.text).toContain('KZQ4');
     expect(res.text).toContain('1 of 2 joined');
     expect(res.text).toContain('Player 1 · Alex');
+    // `export const title` as a function of the route's props.
+    expect(res.text).toContain('<title>Lobby KZQ4</title>');
     expect(res.text).toContain(
       '<script id="scamp-data" type="application/json">',
     );

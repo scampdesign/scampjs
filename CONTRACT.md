@@ -474,6 +474,8 @@ import { loadGame, startGame } from '@/lib/game';
 
 export const render = 'client';
 
+export const title = ({ params }: RouteProps<typeof load>) => `Lobby ${params.token}`;
+
 export async function load({ params, env }: LoadContext<{ token: string }>) {
   return { game: await loadGame(env.DB, params.token) };
 }
@@ -481,12 +483,13 @@ export async function load({ params, env }: LoadContext<{ token: string }>) {
 export default function LobbyRoute({ params, data }: RouteProps<typeof load>) {
 ```
 
-| Export    | Required | Shape                                                                                                                                |
-| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `default` | yes      | A component receiving `RouteProps<typeof load>`: `{ params, data }`.                                                                 |
-| `load`    | no       | `(ctx: LoadContext<P>) => T \| Promise<T>`. Runs on the server or at build time. `data` is `Awaited<T>`.                             |
-| `render`  | no       | `'static' \| 'server' \| 'client'`. Default `static`.                                                                                |
-| `params`  | no       | `() => P[] \| Promise<P[]>`. A static route with `load()` prerenders one page per entry; without it, such a route falls to `server`. |
+| Export    | Required | Shape                                                                                                                                    |
+| --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `default` | yes      | A component receiving `RouteProps<typeof load>`: `{ params, data }`.                                                                     |
+| `load`    | no       | `(ctx: LoadContext<P>) => T \| Promise<T>`. Runs on the server or at build time. `data` is `Awaited<T>`.                                 |
+| `render`  | no       | `'static' \| 'server' \| 'client'`. Default `static`.                                                                                    |
+| `title`   | no       | The page's `<title>`: a string, or `(props: RouteProps<typeof load>) => string`. Default: the file's path under `routes/`, e.g. `index`. |
+| `params`  | no       | `() => P[] \| Promise<P[]>`. A static route with `load()` prerenders one page per entry; without it, such a route falls to `server`.     |
 
 `LoadContext` is the whole of what a route file sees of the server:
 

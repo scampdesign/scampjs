@@ -5,6 +5,8 @@ import { loadGame, startGame } from '@/lib/game';
 
 export const render = 'client';
 
+export const title = ({ params }: RouteProps<typeof load>) => `Lobby ${params.token}`;
+
 export async function load({ params, env }: LoadContext<{ token: string }>) {
   return { game: await loadGame(env.DB, params.token) };
 }

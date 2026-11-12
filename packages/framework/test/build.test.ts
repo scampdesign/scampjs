@@ -67,6 +67,8 @@ export function load({ env, request }: LoadContext) {
   return { greeting: (env as unknown as Record<string, string>)['GREETING'], path: new URL(request.url).pathname };
 }
 
+export const title = 'About & us';
+
 export default function About({ data }: RouteProps<typeof load>) {
   return <main><p id="greeting">{data.greeting} at {data.path}</p><Home /></main>;
 }
@@ -156,6 +158,16 @@ export default function Team({ data }: RouteProps<typeof load>) {
     expect(files.some((f) => f.startsWith('.vite'))).toBe(false);
     expect(existsSync(join(dir, 'node_modules', '.scamp'))).toBe(true);
     expect(readdirSync(join(dir, 'node_modules', '.scamp'))).toEqual([]);
+  });
+
+  it("titles a prerendered page with its route's title export, or its path without one", () => {
+    const about = readFileSync(
+      join(dir, 'dist', 'about', 'index.html'),
+      'utf8',
+    );
+    expect(about).toContain('<title>About &amp; us</title>');
+    const home = readFileSync(join(dir, 'dist', 'index.html'), 'utf8');
+    expect(home).toContain('<title>index</title>');
   });
 
   it('puts design/head.html in every prerendered page, before the stylesheets', () => {

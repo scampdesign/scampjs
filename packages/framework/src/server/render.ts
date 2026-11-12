@@ -19,6 +19,8 @@ export type RouteModuleShape = {
   load: ((ctx: LoadContext) => unknown) | null;
   params: (() => Params[] | Promise<Params[]>) | null;
   render: RenderMode;
+  /** The `<title>`: a string, or a function of the page's props. */
+  title: string | ((props: { params: Params; data: unknown }) => string) | null;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -46,6 +48,12 @@ export const routeModuleShape = (
   ) {
     throw new Error(`${name}: render must be 'static', 'server', or 'client'.`);
   }
+  const title = mod['title'];
+  if (title !== undefined && typeof title !== 'string' && !isFunction(title)) {
+    throw new Error(
+      `${name}: title must be a string or a function returning one.`,
+    );
+  }
   return {
     component: mod['default'] as ComponentType<{
       params: Params;
@@ -58,6 +66,12 @@ export const routeModuleShape = (
       ? (mod['params'] as () => Params[] | Promise<Params[]>)
       : null,
     render: render ?? 'static',
+    title:
+      typeof title === 'string'
+        ? title
+        : isFunction(title)
+          ? (title as (props: { params: Params; data: unknown }) => string)
+          : null,
   };
 };
 
@@ -97,8 +111,12 @@ export const renderPage = async (input: PageRenderInput): Promise<string> => {
     ...(input.baseScripts ?? []),
     ...(input.javascript && input.entry !== null ? [input.entry] : []),
   ];
+  const { title } = input.route;
   return documentShell({
-    title: input.title,
+    title:
+      typeof title === 'function'
+        ? title({ params: input.params, data })
+        : (title ?? input.title),
     head: input.head,
     styles: input.styles ?? [],
     links: input.links ?? [],
@@ -110,6 +128,6 @@ export const renderPage = async (input: PageRenderInput): Promise<string> => {
   });
 };
 
-/** A route file's display title: its path without the extension. */
+/** A route file's display title, for one with no `title` export: its path without the extension. */
 export const routeTitle = (file: string): string =>
   file.replace(/\.(tsx|jsx|ts|js)$/, '');
