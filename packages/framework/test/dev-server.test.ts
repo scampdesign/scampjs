@@ -229,6 +229,34 @@ describe('scamp dev on a scaffolded project', () => {
         '',
       ].join('\n'),
     );
+    // A view that declares an event, and a server route rendering it.
+    mkdirSync(join(tmp, 'views', 'Tap'), { recursive: true });
+    writeFileSync(
+      join(tmp, 'views', 'Tap', 'Tap.tsx'),
+      [
+        'type TapProps = { onTap?: () => void; className?: string };',
+        '',
+        'export default function Tap({ onTap, className }: TapProps) {',
+        '  return <button data-scamp-id="root" className={className} type="button" onClick={onTap}>Tap</button>;',
+        '}',
+        '',
+        "export const _scamp = { contract: 2, events: ['onTap'] } as const;",
+        '',
+      ].join('\n'),
+    );
+    writeFileSync(
+      join(tmp, 'routes', 'tap.tsx'),
+      [
+        "import Tap from '@/views/Tap/Tap';",
+        '',
+        "export const render = 'server';",
+        '',
+        'export default function TapRoute() {',
+        '  return <Tap onTap={() => {}} />;',
+        '}',
+        '',
+      ].join('\n'),
+    );
     server = await createDevServer({ root: tmp, stdout: quiet, stderr: quiet });
   }, 30_000);
   afterAll(async () => {
@@ -241,7 +269,7 @@ describe('scamp dev on a scaffolded project', () => {
     expect(res.status).toBe(200);
     expect(res.text).toContain('data-scamp-id="root"');
     expect(JSON.parse((await get(server, '/_views/')).text)).toEqual({
-      views: ['Home'],
+      views: ['Home', 'Tap'],
     });
   });
 
@@ -249,6 +277,17 @@ describe('scamp dev on a scaffolded project', () => {
     const res = await get(server, '/hello');
     expect(res.status).toBe(200);
     expect(res.text).toContain('hello from .dev.vars at /hello with 0 params');
+  });
+
+  it('hydrates a server route whose view declares an event, as the build would, and not one without', async () => {
+    const tap = await get(server, '/tap');
+    expect(tap.status).toBe(200);
+    expect(tap.text).toContain(
+      '<script id="scamp-data" type="application/json">',
+    );
+    expect(tap.text).toContain('virtual:scamp-entry');
+    const hello = await get(server, '/hello');
+    expect(hello.text).not.toContain('virtual:scamp-entry');
   });
 
   it('reports a route error as 500 with the message', async () => {

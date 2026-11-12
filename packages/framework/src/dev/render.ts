@@ -4,13 +4,15 @@
  * module graph reached. see docs/notes/dev-server.md
  */
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { h } from 'preact';
 import type { ComponentType } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import type { ModuleNode, ViteDevServer } from 'vite';
 import { CONTRACT_VERSION } from '../contract.js';
+import { eventsDeclaredIn, shipsJavaScript } from '../build/plan.js';
 import type { Params } from '../runtime/index.js';
+import { declaresInteractions } from '../runtime/interactions.js';
 import { renderPage, routeModuleShape, routeTitle } from '../server/render.js';
 import { withParams } from '../runtime/params.js';
 import { projectHead } from './head.js';
@@ -62,6 +64,38 @@ const collectCss = async (
   return out;
 };
 
+/**
+ * The view and component files reached from `entryFile` that need the
+ * browser: they declare events or click interactions. The build's rule
+ * (islandsPlugin in build/build.ts), so a route ships JavaScript in dev
+ * exactly when it would after `scamp build`.
+ */
+const eventViews = (
+  vite: ViteDevServer,
+  root: string,
+  entryFile: string,
+): string[] => {
+  const seen = new Set<string>();
+  const found: string[] = [];
+  const visit = (node: ModuleNode | undefined): void => {
+    if (node === undefined || node.file === null || seen.has(node.file)) return;
+    seen.add(node.file);
+    const rel = relative(root, node.file);
+    if (/^(views|components)[\\/]/.test(rel) && /\.(tsx|jsx)$/.test(rel)) {
+      const source = readFileSync(node.file, 'utf8');
+      const events = eventsDeclaredIn(source);
+      if (
+        (events !== null && events.length > 0) ||
+        declaresInteractions(source)
+      )
+        found.push(rel);
+    }
+    for (const child of node.ssrImportedModules) visit(child);
+  };
+  visit(vite.moduleGraph.getModuleById(entryFile));
+  return found;
+};
+
 export type RenderedPage = { html: string };
 
 export type RouteRenderInput = {
@@ -84,9 +118,13 @@ export const renderRoute = async (
     themeCss(input.root),
     ...(await collectCss(input.vite, join(input.root, 'routes', input.file))),
   ];
-  // In dev a `client` route hydrates as a whole; `static` and `server`
-  // routes ship no JavaScript. Islands arrive with `scamp build`.
-  const client = route.render === 'client';
+  // Hydrates as a whole when the build would ship it JavaScript: a
+  // `client` route, or any route rendering a view that declares events.
+  const entryFile = join(input.root, 'routes', input.file);
+  const client = shipsJavaScript(
+    route.render,
+    eventViews(input.vite, input.root, entryFile),
+  );
   return {
     html: await renderPage({
       route,

@@ -732,10 +732,12 @@ server inside the document shell with `design/head.html` and then
 `design/theme.css` first and every stylesheet the route's modules
 import inlined after it, and:
 
-- for `render = 'client'`, serialises `{ params, data }` into the page
-  and hydrates the route in the browser;
-- for `static` and `server`, ships no JavaScript beyond Vite's client.
-  Islands from `_scamp.events` arrive with `scamp build`.
+- when the route would ship JavaScript after `scamp build` (it is
+  `render = 'client'`, or a view or component it renders declares
+  `_scamp.events` or a click interaction), serialises `{ params, data }`
+  into the page and hydrates the route in the browser;
+- otherwise ships no JavaScript beyond Vite's client and the click
+  interaction handler.
 
 Any change under the project reloads open pages. A route error is a
 `500` whose body is the message and stack.

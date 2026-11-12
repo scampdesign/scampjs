@@ -50,13 +50,16 @@ and later.
 
 ## Hydration
 
-Only `render = 'client'` routes get JavaScript: the shell embeds
+A route gets JavaScript when the build would give it some: it is
+`render = 'client'`, or a view or component in its SSR module graph
+declares `_scamp.events` or a click interaction (the build's rule,
+`shipsJavaScript` in `build/plan.ts`). The shell then embeds
 `{ params, data }` as JSON and loads the virtual module
 `virtual:scamp-entry?route=/routes/…`, which the Vite plugin serves.
 The entry imports the route module in the browser, sets the params
-global, and hydrates into `#scamp-root`. A `static` or `server` route
-ships only Vite's client for reload. The route module, `load()` and
-all, is loaded in the browser for a `client` route; a `load()` that
+global, and hydrates into `#scamp-root`. Any other route ships only
+Vite's client for reload. The route module, `load()` and all, is
+loaded in the browser for a hydrated route; a `load()` that
 imports server-only code will fail there. `scamp build` (phase 4)
 strips `load()` from the client bundle; until then, keep server-only
 imports inside `load()` via dynamic import.
